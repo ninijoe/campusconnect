@@ -36,6 +36,7 @@ def index(request):
     user = request.user
     following = user.following.all()
     posts = Post.objects.filter(Q(author=user) | Q(author__in=following)).order_by('-created')
+    form = PostForm()  # Include the form for creating a new post
 
     if request.method == "POST":
         # Handle user signup
@@ -43,7 +44,7 @@ def index(request):
 
         show_signup_content = False  # After signup, don't show signup content
 
-    return render(request, 'social_network/index.html', {'show_signup_content': show_signup_content, 'posts': posts})
+    return render(request, 'social_network/index.html', {'form': form,'show_signup_content': show_signup_content, 'posts': posts})
 
 
 @login_required
@@ -227,11 +228,15 @@ def delete_post(request, post_id):
         post = Post.objects.get(id=post_id)
         if post.author == request.user:
             post.delete()
-            # Redirect back to the profile page or any desired page
-            return redirect('my_profile')
+    
+        # Check the Referer header to determine the previous page
+        referer = request.META.get('HTTP_REFERER')
+        if referer:
+            # Redirect the user back to the previous page
+            return redirect(referer)
         else:
-            # If the user is not the author of the post, raise a 404 error
-            raise Http404("You do not have permission to delete this post.")
+            # If no referer is provided, redirect to a default page (e.g., my_profile)
+            return redirect('my_profile')  # Change 'my_profile' to the appropriate URL name
     except Post.DoesNotExist:
         raise Http404("Post does not exist.")
     
@@ -320,9 +325,17 @@ def create_post(request):
             post.author = user
             post.save()
     
-    return redirect('display_posts')  # Redirect to the display_posts view
+    # Check the Referer header to determine the previous page
+    referer = request.META.get('HTTP_REFERER')
+    if referer:
+        # Redirect the user back to the previous page
+        return redirect(referer)
+    else:
+        # If no referer is provided, redirect to a default page (e.g., index)
+        return redirect('index')  # Change 'index' to the appropriate URL name
+    
 
-
+    
 
 @login_required(login_url='login')
 def display_posts(request):
@@ -331,6 +344,7 @@ def display_posts(request):
     form = PostForm()
     
     return render(request, 'social_network/my_profile.html', {'form': form, 'posts': posts})
+
 
 def discover(request):
     return render(request, 'social_network/discover.html')
