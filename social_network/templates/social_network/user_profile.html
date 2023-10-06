@@ -6,7 +6,7 @@
 
 
 
-<div class="content" style="background-color: rgb(251, 245, 245); width: 1000px; position: absolute; top: 60px; left: 10%; bottom: 0; overflow-y: auto;">
+<div class="content" style="background-color: rgb(251, 245, 245); width: 100%; position: absolute; top: 60px; left: 10%; bottom: 0; overflow-y: auto;">
     <div class="row mb-5">
         <!-- Profile Photo Upload -->
         <div class="col-md-4">
@@ -101,13 +101,13 @@
         <div class="row">
             <div class="col-md-12">
                 {% for post in posts %}
-                <div class="card mb-3" style="border: 1.5px solid black; right: 0.1%; width:70%;">
+                <div class="card mb-3" style="border: 1.5px solid black; right: 0.1%; width:85%;">
                     <div class="card-header">
                         <img src="{{ post.author.profile_photo.url }}" alt="{{ post.author.username }} Profile Picture" class="profile-picture">
                         <strong><a href="{% url 'user_profile' post.author.username %}">@{{ post.author }}</a></strong>
                         <small class="text-muted">{{ post.created }}</small>
                     </div>
-                    <div class="card-body" style="background-color: rgb(142, 188, 207);">
+                    <div class="card-body" style="background-color: rgb(187, 208, 220);">
                         <p class="card-text">{{ post.content }}</p>
                         <p class="card-text">
                             <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#commentsCollapse{{ post.id }}" aria-expanded="false" aria-controls="commentsCollapse{{ post.id }}">
@@ -125,18 +125,18 @@
                                 </div>
                                 <button type="submit" class="btn btn-primary">Add Comment</button>
                             </form>
-                            
+                            <br>
                             <!-- Display comments for the post -->
                             <ul class="list-unstyled">
                                 {% for comment in post.comments.all %}
-                                <li class="media" style="background-color: rgb(172, 188, 194);">
+                                <li class="media" style="background-color: rgb(205, 219, 224);">
                                     <img src="{{ comment.user.profile_photo.url }}" alt="{{ comment.user.username }} Profile Picture" class="profile-picture">
                                     <div class="media-body">
                                         <strong><a href="{% url 'user_profile' comment.user.username %}">@{{ comment.user }}</a></strong>
                                         <p>{{ comment.text }}</p>
                                         <small class="text-muted">{{ comment.created }}</small>
                                         <!-- Add a "Delete" button for the comment -->
-                                        {% if comment.user == user %}
+                                        {% if comment.user == request.user %}
                                         <form method="post" action="{% url 'delete_comment' comment.id %}">
                                             {% csrf_token %}
                                             <button type="submit" class="btn btn-danger btn-sm">Delete</button>
@@ -148,7 +148,7 @@
                             </ul>
                         </div>
                     </div>
-                    {% if post.author == user %}
+                    {% if post.author == request.user %}
                     <div class="card-footer">
                         <form method="post" action="{% url 'delete_post' post.id %}">
                             {% csrf_token %}

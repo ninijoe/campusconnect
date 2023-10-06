@@ -1,4 +1,5 @@
 # social_network/views.py
+from django.contrib.auth.hashers import check_password
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
@@ -7,26 +8,28 @@ from django.contrib.auth.hashers import check_password
 from django.urls import reverse
 from django.shortcuts import redirect
 from django.middleware import csrf
+from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from django.contrib.auth import get_user_model
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
 import datetime
 import logging
+import re
 from django.db.models import Q
 import random
 from django.contrib.auth.models import User
 from django.http import Http404
-from .models import Post , Comment
+from .models import Post , Comment , Mention
 from .forms import PostForm , FollowForm , CommentForm
-
 from django.db.models import F
 from django.contrib import messages
 from .models import User
 from datetime import datetime
 from django.http import HttpResponseServerError
 from django.utils import timezone
-
+from django.utils.html import escape
+from django.utils.safestring import mark_safe
 
 @login_required
 def index(request):
@@ -47,25 +50,50 @@ def index(request):
     return render(request, 'social_network/index.html', {'form': form,'show_signup_content': show_signup_content, 'posts': posts})
 
 
+def find_mentions(text):
+    # Use a regular expression to find all mentions in the text
+    # Mentions typically start with "@" followed by the username
+    mention_pattern = r"(@\w+)"
+
+    # Find all matches in the text
+    mentions = re.findall(mention_pattern, text)
+
+    # Extract usernames by removing the "@" symbol
+    usernames = [mention[1:] for mention in mentions]
+
+    # Get the User objects for the mentioned usernames
+    mentioned_users = []
+    for username in usernames:
+        try:
+            user = User.objects.get(username=username)
+            mentioned_users.append(user)
+        except User.DoesNotExist:
+            # Handle the case where the user with the mentioned username does not exist
+            pass
+
+    return mentioned_users
+
+
+
+
+
 @login_required
 def my_profile(request):
     if request.method == "POST":
         # Get the current user
         user = request.user
 
-        
-
         # Update the user fields based on form input, but only if a value is provided
-        if request.POST.get("first-name") is not None:
-            user.first_name = request.POST.get("first-name")
-        if request.POST.get("last-name") is not None:
-            user.last_name = request.POST.get("last-name")
-        if request.POST.get("gender") is not None:
-            user.gender = request.POST.get("gender")
-        if request.POST.get("department") is not None:
-            user.department = request.POST.get("department")
-        if request.POST.get("year-of-study") is not None:
-            user.year_of_study = request.POST.get("year-of-study")
+        user.first_name = request.POST.get("first-name", user.first_name)
+        user.last_name = request.POST.get("last-name", user.last_name)
+        user.gender = request.POST.get("gender", user.gender)
+        user.department = request.POST.get("department", user.department)
+        user.year_of_study = request.POST.get("year-of-study", user.year_of_study)
+
+        # Handle profile photo upload
+        if 'profile-photo' in request.FILES:
+            profile_photo = request.FILES['profile-photo']
+            user.profile_photo = profile_photo
 
         # Save the user object
         user.save()
@@ -79,7 +107,6 @@ def my_profile(request):
         'followers_count': followers_count,
     })
 
-
 @login_required
 def user_profile(request, username):
     try:
@@ -89,9 +116,7 @@ def user_profile(request, username):
 
     return render(request, 'social_network/user_profile.html', {'user': user})
 
-
-
-
+@login_required(login_url='login')
 def create_comment(request, post_id):
     # Retrieve the post object using the post_id
     post = get_object_or_404(Post, pk=post_id)
@@ -104,18 +129,17 @@ def create_comment(request, post_id):
             comment.post = post
             comment.save()
 
+            # Find mentions in the comment text and create Mention objects
+            mentioned_users = find_mentions(comment.text)
+            for mentioned_user in mentioned_users:
+                Mention.objects.create(user=mentioned_user, comment=comment)
+
     # Redirect back to the referring page (the page where the comment was posted)
     referring_page = request.META.get('HTTP_REFERER')
     if referring_page:
         return HttpResponseRedirect(referring_page)
-
-    # If the referring page is not available, you can provide a fallback URL
-    # return HttpResponseRedirect(reverse('fallback_url_name'))
-
     # Handle other cases or return an error response if needed
     return HttpResponseServerError("Invalid request.")
-
-
 
 @login_required
 def delete_comment(request, comment_id):
@@ -137,13 +161,8 @@ def delete_comment(request, comment_id):
     if referring_page:
         return HttpResponseRedirect(referring_page)
 
-    # If the referring page is not available, you can provide a fallback URL
-    # return HttpResponseRedirect(reverse('fallback_url_name'))
-
     # Handle other cases or return an error response if needed
     return HttpResponseServerError("Invalid request.")
-
-
 
 @login_required
 def follow_user(request):
@@ -179,8 +198,6 @@ def follow_user(request):
     # Handle other cases or errors here if needed
     raise Http404("Invalid request")
 
-
-
 @login_required
 def update_profile_photo(request):
     if request.method == 'POST':
@@ -201,13 +218,10 @@ def update_profile_photo(request):
                 messages.error(request, "No profile photo provided.")
         except Exception as e:
             # Log the error for debugging
-            
             messages.error(request, "An error occurred while updating the profile photo.")
-    
+
     # Redirect back to the profile page even on error
     return redirect("my_profile")
-
-
 
 @login_required
 def remove_profile_photo(request):
@@ -220,15 +234,16 @@ def remove_profile_photo(request):
     messages.success(request, "Profile photo removed successfully.")
     return redirect("my_profile")
 
-
-
 @login_required(login_url='login')
 def delete_post(request, post_id):
     try:
         post = Post.objects.get(id=post_id)
         if post.author == request.user:
             post.delete()
-    
+            messages.success(request, 'Post successfully deleted')
+        else:
+            messages.error(request, 'Post deletion unsuccessful. You do not have permission to delete this post.')
+
         # Check the Referer header to determine the previous page
         referer = request.META.get('HTTP_REFERER')
         if referer:
@@ -239,8 +254,6 @@ def delete_post(request, post_id):
             return redirect('my_profile')  # Change 'my_profile' to the appropriate URL name
     except Post.DoesNotExist:
         raise Http404("Post does not exist.")
-    
-    
 
 @login_required
 def update_profile(request):
@@ -270,7 +283,7 @@ def update_profile(request):
             # Handle profile photo upload
             if 'profile-photo' in request.FILES:
                 profile_photo = request.FILES['profile-photo']
-                user.profile_photo = profile_photo  # Assuming you have a profile_photo field in your User model
+                user.profile_photo = profile_photo
 
             # Save the updated user object
             user.save()
@@ -282,11 +295,7 @@ def update_profile(request):
             messages.error(request, "An error occurred while updating the profile.")
 
     # Handle other cases or return an error response if needed
-    return HttpResponseServerError("Invalid request.")  # You can customize this error message
-
-
-
-
+    return HttpResponseServerError("Invalid request.")
 
 @login_required
 def update_bio(request):
@@ -311,8 +320,7 @@ def update_bio(request):
             messages.error(request, "An error occurred while updating the bio.")
 
     # Handle other cases or return an error response if needed
-    return HttpResponseServerError("Invalid request.")  # You can customize this error message
-
+    return HttpResponseServerError("Invalid request.")
 
 @login_required(login_url='login')
 def create_post(request):
@@ -324,7 +332,18 @@ def create_post(request):
             post = form.save(commit=False)
             post.author = user
             post.save()
-    
+
+            # Extract mentions from the post content
+            mentioned_users = find_mentions(post.content)
+
+            # Save mentions in the Mention model
+            for mentioned_user in mentioned_users:
+                Mention.objects.create(post=post, mentioned_user=mentioned_user)
+
+            messages.success(request, 'Post successfully created')
+        else:
+            messages.error(request, 'Post creation unsuccessful')
+
     # Check the Referer header to determine the previous page
     referer = request.META.get('HTTP_REFERER')
     if referer:
@@ -333,62 +352,58 @@ def create_post(request):
     else:
         # If no referer is provided, redirect to a default page (e.g., index)
         return redirect('index')  # Change 'index' to the appropriate URL name
-    
 
-    
+
 
 @login_required(login_url='login')
 def display_posts(request):
     user = request.user
     posts = Post.objects.filter(author=user).order_by('-created')
     form = PostForm()
-    
+
     return render(request, 'social_network/my_profile.html', {'form': form, 'posts': posts})
 
-
 def discover(request):
-    return render(request, 'social_network/discover.html')
+    # Retrieve all users
+    all_users = list(User.objects.all())  # Replace with your custom user profile model if needed
+    # Shuffle the list to randomize the order
+    random.shuffle(all_users)
+    return render(request, 'social_network/discover.html', {'all_users': all_users})
 
 def settings(request):
     return render(request, 'social_network/settings.html')
 
 @csrf_exempt
 def login_view(request):
-
     if request.method == "POST":
-        # Attempt to sign user in
+        # Attempt to sign the user in
         username = request.POST["username"]
         password = request.POST["password"]
         user = authenticate(request, username=username, password=password)
 
-        # Check if authentication successful
+        # Check if authentication was successful
         if user is not None:
             login(request, user)
             return HttpResponseRedirect(reverse("index"))
-
         else:
             return render(request, "social_network/login.html", {
                 "message": "Invalid username and/or password."
             })
     else:
-
         return render(request, "social_network/login.html", {'csrf_token': csrf.get_token(request)})
-
 
 def logout_view(request):
     logout(request)
     return render(request, "social_network/login.html", {'csrf_token': csrf.get_token(request)})
 
-
-
 @csrf_exempt  # You may need to exempt CSRF protection for this view
 def signup(request):
     if request.method == "POST":
-        # Takes in the user username and email submitted in the signup form
+        # Take in the user username and email submitted in the signup form
         username = request.POST["username"]
         email = request.POST["email"]
 
-        # Ensure password matches confirmation
+        # Ensure the password matches the confirmation
         password = request.POST["password"]
         confirmation = request.POST["confirmation"]
         if password != confirmation:
@@ -404,7 +419,7 @@ def signup(request):
             return render(request, "social_network/signup.html", {
                 "message": "Username already taken."
             })
-        
+
         # Log the user in
         login(request, user)
 
@@ -415,15 +430,12 @@ def signup(request):
     else:
         return render(request, "social_network/signup.html", {'csrf_token': csrf.get_token(request)})
 
-
-
 def discover(request):
     # Retrieve all users
-    all_users = list(User.objects.all() ) # Replace with your custom user profile model if needed
+    all_users = list(User.objects.all())  # Replace with your custom user profile model if needed
     # Shuffle the list to randomize the order
     random.shuffle(all_users)
     return render(request, 'social_network/discover.html', {'all_users': all_users})
-
 
 def user_posts(request, username):
     try:
@@ -432,7 +444,6 @@ def user_posts(request, username):
         return render(request, 'social_network/user_profile.html', {'user': user, 'posts': posts})
     except User.DoesNotExist:
         raise Http404("User does not exist.")
-    
 
 def followers(request, username):
     user = get_object_or_404(User, username=username)
@@ -443,3 +454,10 @@ def followings(request, username):
     user = get_object_or_404(User, username=username)
     followings = user.following.all()
     return render(request, 'social_network/followings.html', {'user': user, 'followings': followings})
+
+@login_required
+def notifications(request):
+    # Retrieve mentions for the current user
+    mentions = Mention.objects.filter(user=request.user).order_by('-created')
+    
+    return render(request, 'social_network/notifications.html', {'mentions': mentions})

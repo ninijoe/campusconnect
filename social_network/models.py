@@ -61,7 +61,7 @@ class Post(models.Model):
     def __str__(self):
         # Format the 'created' timestamp to a user-friendly string
         formatted_time = self.created.strftime("%b %d, %Y %I:%M %p")
-        return f"{self.author}'s post- (' {self.content[:20]}..' ) {formatted_time}"
+        return f"@{self.author}'s post- (' {self.content[:20]}..' ) {formatted_time}"
     
 
 
@@ -75,4 +75,11 @@ class Comment(models.Model):
     def __str__(self):
         # Format the 'created' timestamp to a user-friendly string
         formatted_time = self.created.strftime("%b %d, %Y %I:%M %p")
-        return f"{self.user} commented on /{self.post}/ on {formatted_time}"
+        return f"@{self.user} commented on {self.post}, on {formatted_time}"
+    
+
+class Mention(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='mentions')
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='mentions', null=True)
+    comment = models.ForeignKey(Comment, on_delete=models.CASCADE, related_name='mentions', null=True)
+    created = models.DateTimeField(auto_now_add=True)

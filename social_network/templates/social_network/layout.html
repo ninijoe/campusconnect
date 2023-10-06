@@ -41,7 +41,7 @@
         </div>
     </div>
 
-    <div class="navbar" style="background-color: rgb(25, 23, 23); width: 180px; position: absolute; top: 63px; bottom: 0; left: 0; text-align: left;">
+    <div class="navbar" style="background-color: rgb(25, 23, 23); width: 190px; position: absolute; top: 63px; bottom: 0; left: 0; text-align: left;">
         <div class="nav-item">
             <a href="{% url 'my_profile' %}" class="nav-link {% if request.path == '/my_profile/' %}active{% endif %}">
                 <i class="fas fa-user"></i>
@@ -61,11 +61,18 @@
             </a>
         </div>
         <div class="nav-item">
+            <a href="{% url 'notifications' %}" class="nav-link {% if request.path == '/notifications/' %}active{% endif %}">
+                <i class="fas fa-bell"></i>
+                Notifications
+            </a>
+        </div>
+        <div class="nav-item">
             <a href="{% url 'settings' %}" class="nav-link {% if request.path == '/settings/' %}active{% endif %}">
                 <i class="fas fa-cog"></i>
                 Settings
             </a>
         </div>
+        
        
         <div class="nav-item mt-auto">
             <p style="font-size: 12px; color: white;">&copy; 2023 CampusConnect</p>
@@ -76,14 +83,18 @@
     <div class="content" style="background-color: rgb(251, 245, 245); width: 800px; position: absolute; top: 95px; left: 17%; bottom: 0; overflow: hidden;">
         <div class="content-navbar" style="background-color: #c5d1dd; color: white; padding: 10px; height: 2.5rem; border: 1px solid black; font-weight: bold;">
             <div class="content-text" style="color: rgb(25, 23, 23);">
-                {% if request.path == '/my_profile/' %}
+                {% if request.resolver_match.url_name == 'my_profile' %}
                     My Profile
-                {% elif request.path == '/index/' %}
+                {% elif request.resolver_match.url_name == 'index' %}
                     Home
-                {% elif request.path == '/discover/' %}
+                {% elif request.resolver_match.url_name == 'discover' %}
                     Discover
-                {% elif request.path == '/settings/' %}
+                {% elif request.resolver_match.url_name == 'settings' %}
                     Settings
+                {% elif request.resolver_match.url_name == 'user_profile' %}
+                    User Profile
+                {% elif request.resolver_match.url_name == 'notifications' %}
+                    Notifications
                 {% endif %}
             </div>
         </div>

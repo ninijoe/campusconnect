@@ -1,44 +1,44 @@
 body {
-            background-image: url('/static/images/banner.png');
-            background-size: 100%; /* Set the background size */
-            background-repeat: no-repeat;
-            margin-bottom: 0; /* Remove body margin to prevent unwanted spacing */
-            padding: 0; /* Remove body padding to prevent unwanted spacing */
-        }
+    background-image: url('/static/images/banner.png');
+    background-size: 100%; /* Set the background size */
+    background-repeat: no-repeat;
+    margin-bottom: 0; /* Remove body margin to prevent unwanted spacing */
+    padding: 0; /* Remove body padding to prevent unwanted spacing */
+}
 
-        /* Style the navigation links */
-        .navbar .nav-item {
-            display: flex;
-            align-items: center;
-            justify-content: flex-start; /* Push the links to the left */
-            white-space: nowrap; /* Prevent text from wrapping */
-            overflow: hidden; /* Hide any overflow */
-        }
+/* Style the navigation links */
+.navbar .nav-item {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start; /* Push the links to the left */
+    white-space: nowrap; /* Prevent text from wrapping */
+    overflow: hidden; /* Hide any overflow */
+}
 
-        .navbar .nav-link {
-            text-decoration: none;
-            color: white;
-            font-family: 'Canva Sans', sans-serif;
-            font-weight: bold;
-            font-size: 1.0rem; /* Reduce font size */
-            transition: color 0.3s, font-size 0.3s;
-            display: flex;
-            align-items: center;
-            max-width: 80%; /* Limit the maximum width of the link */
-        }
+.navbar .nav-link {
+    text-decoration: none;
+    color: white;
+    font-family: 'Canva Sans', sans-serif;
+    font-weight: bold;
+    font-size: 1.0rem; /* Reduce font size */
+    transition: color 0.3s, font-size 0.3s;
+    display: flex;
+    align-items: center;
+    max-width: 80%; /* Limit the maximum width of the link */
+}
 
-        .navbar .nav-link i {
-            margin-right: 0.5rem; /* Reduce spacing between icon and text */
-        }
+.navbar .nav-link i {
+    margin-right: 0.5rem; /* Reduce spacing between icon and text */
+}
 
-        /* Hover effect */
-        .navbar .nav-link:hover {
-            color: rgb(107, 147, 205);
-            font-size: 1.2rem; /* Increase font size on hover */
-        }
+/* Hover effect */
+.navbar .nav-link:hover {
+    color: rgb(107, 147, 205);
+    font-size: 1rem; /* Increase font size on hover */
+}
 
-        /* Add this rule to make active links pink */
-        .nav-link.active {
-            color: rgb(49, 91, 153);
-            /* You can customize this style further if needed */
-        }
+
+.nav-link.active {
+    color: rgb(49, 91, 153);
+    
+}

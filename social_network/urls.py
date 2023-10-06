@@ -70,5 +70,7 @@ urlpatterns = [
     # Add this URL pattern for comment deletion
     path('delete_comment/<int:comment_id>/', views.delete_comment, name='delete_comment'),
 
+    # URL for Notifications
+    path('notifications/', views.notifications, name='notifications'),
 
 ]

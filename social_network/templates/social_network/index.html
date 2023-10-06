@@ -1,6 +1,9 @@
 {% extends "social_network/layout.html" %}
 
 
+
+
+{% block main_content %}
 <div class="row justify-content-center">
     <div class="row-md-6">
         {% if message %}
@@ -10,8 +13,6 @@
         {% endif %}
     </div>
 </div>
-
-{% block main_content %}
 <!-- Post Creation Form -->
 <div class="mb-3" id="post-creation-form">
     <form method="post" action="{% url 'create_post' %}">
@@ -49,7 +50,7 @@
                             </div>
                             <button type="submit" class="btn btn-primary">Add Comment</button>
                         </form>
-                        
+                        <br>
                         <!-- Display comments for the post -->
                         <ul class="list-unstyled">
                             {% for comment in post.comments.all %}
