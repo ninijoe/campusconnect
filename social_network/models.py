@@ -6,6 +6,9 @@ from django.utils import timezone
 from django.dispatch import receiver
 
 
+
+
+
 class User(AbstractUser):
     # Other fields and methods here
 

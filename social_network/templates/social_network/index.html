@@ -28,7 +28,9 @@
             {% for post in posts %}
             <div class="card mb-3" style="border: 1.5px solid black;">
                 <div class="card-header">
-                    <img src="{{ post.author.profile_photo.url }}" alt="{{ post.author.username }} Profile Picture" class="profile-picture">
+                    {% if post.author.profile_photo %}
+                        <img src="{{ post.author.profile_photo.url }}" alt="{{ post.author.username }} Profile Picture" class="profile-picture">
+                    {% endif %}
                     <strong><a href="{% url 'user_profile' post.author.username %}">@{{ post.author }}</a></strong>
                     <small class="text-muted">{{ post.created }}</small>
                 </div>
@@ -55,7 +57,10 @@
                         <ul class="list-unstyled">
                             {% for comment in post.comments.all %}
                             <li class="media" style="background-color: rgb(172, 188, 194);">
-                                <img src="{{ comment.user.profile_photo.url }}" alt="{{ comment.user.username }} Profile Picture" class="profile-picture">
+                                {% if comment.user.profile_photo %}
+                                    <img src="{{ comment.user.profile_photo.url }}" alt="{{ comment.user.username }} Profile Picture" class="profile-picture">
+                                {% endif %}
+
                                 <div class="media-body">
                                     <strong><a href="{% url 'user_profile' comment.user.username %}">@{{ comment.user }}</a></strong>
                                     <p>{{ comment.text }}</p>

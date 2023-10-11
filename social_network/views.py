@@ -57,13 +57,14 @@ def find_mentions(text):
 
     # Find all matches in the text
     mentions = re.findall(mention_pattern, text)
-
+    
     # Extract usernames by removing the "@" symbol
     usernames = [mention[1:] for mention in mentions]
-
+    
     # Get the User objects for the mentioned usernames
     mentioned_users = []
     for username in usernames:
+        username = username.strip()  # Remove leading/trailing spaces
         try:
             user = User.objects.get(username=username)
             mentioned_users.append(user)
@@ -71,7 +72,10 @@ def find_mentions(text):
             # Handle the case where the user with the mentioned username does not exist
             pass
 
+    print("Mentioned users:", mentioned_users)  # Debug: Print mentioned users
+
     return mentioned_users
+
 
 
 
@@ -338,7 +342,8 @@ def create_post(request):
 
             # Save mentions in the Mention model
             for mentioned_user in mentioned_users:
-                Mention.objects.create(post=post, mentioned_user=mentioned_user)
+                Mention.objects.create(post=post, user=user)
+
 
             messages.success(request, 'Post successfully created')
         else:
@@ -457,7 +462,16 @@ def followings(request, username):
 
 @login_required
 def notifications(request):
-    # Retrieve mentions for the current user
-    mentions = Mention.objects.filter(user=request.user).order_by('-created')
+    # Retrieve all mentions, regardless of the user
+    mentions = Mention.objects.all().order_by('-created')
     
-    return render(request, 'social_network/notifications.html', {'mentions': mentions})
+
+    # Get mentioned users using find_mentions function for all mentions
+    mention_texts = [mention.post.content if mention.post else mention.comment.post.content for mention in mentions]
+    mentioned_users = find_mentions(" ".join(mention_texts))
+
+    print("Logged-in User:", request.user.username)
+    print("Mentioned Users:", [user.username for user in mentioned_users])
+
+    return render(request, 'social_network/notifications.html', {'user': request.user, 'mentions': mentions, 'mentioned_users': mentioned_users})
+

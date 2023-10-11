@@ -6,15 +6,17 @@
     
     <ul>
         {% for mention in mentions %}
-        <li>
-            {% if mention.post %}
-                <a href="{% url 'user_profile' mention.post.author.username %}">@{{ mention.post.author.username }}</a> mentioned you in a post:
-                <p>{{ mention.post.content }}</p>
-            {% else %}
-                <a href="{% url 'user_profile' mention.comment.user.username %}">@{{ mention.comment.user.username }}</a> mentioned you in a comment on post:
-                <p>{{ mention.comment.post.content }}</p>
+            {% if mention.user in mentioned_users %}
+            <li>
+                {% if mention.post %}
+                    <a href="{% url 'user_profile' mention.user.username %}">@{{ mention.user.username }}</a> mentioned you in a post:
+                    <p>"{{ mention.post.content }}"</p>
+                {% else %}
+                    <a href="{% url 'user_profile' mention.user.username %}">@{{ mention.user.username }}</a> mentioned you in a comment on a post:
+                    <p>"{{ mention.comment.post.content }}"</p>
+                {% endif %}
+            </li>
             {% endif %}
-        </li>
         {% endfor %}
     </ul>
 </div>

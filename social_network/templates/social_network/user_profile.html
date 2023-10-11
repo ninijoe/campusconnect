@@ -7,7 +7,7 @@
 
 
 <div class="content" style="background-color: rgb(251, 245, 245); width: 100%; position: absolute; top: 60px; left: 10%; bottom: 0; overflow-y: auto;">
-    <div class="row mb-5">
+    <div class="row mb-5" style="padding:60px;">
         <!-- Profile Photo Upload -->
         <div class="col-md-4">
             <div class="profile-photo text-center">
@@ -85,7 +85,9 @@
                     {% endif %}
                 </form>
                 <br>
-                <div class="card bg-light" style="max-width: 50%;">
+
+                <!-- Bio form fields here -->
+                <div class="card bg-light" style="max-width: 80%;">
                     <div class="card-body">
                         <h5 class="card-title">Bio</h5>
                         <div class="card-text">
@@ -97,11 +99,15 @@
         </div>
     </div>
 
+    <div class="content">
+        <a href="{% url 'user_posts' user.username %}" class="btn btn-secondary">View Posts</a>
+    </div>
+
     <div class="container" style="margin-top: 30px;">
         <div class="row">
-            <div class="col-md-12">
+            <div class="col-md-10">
                 {% for post in posts %}
-                <div class="card mb-3" style="border: 1.5px solid black; right: 0.1%; width:85%;">
+                <div class="card mb-3" style="border: 1.5px solid black; right: 0.1%; width:105%;">
                     <div class="card-header">
                         <img src="{{ post.author.profile_photo.url }}" alt="{{ post.author.username }} Profile Picture" class="profile-picture">
                         <strong><a href="{% url 'user_profile' post.author.username %}">@{{ post.author }}</a></strong>
@@ -163,9 +169,7 @@
     </div>
     
     
-    <div class="content">
-        <a href="{% url 'user_posts' user.username %}" class="btn btn-secondary">View Posts</a>
-    </div>
+    
     
 </div>
 {% endblock %}
