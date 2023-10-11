@@ -464,7 +464,6 @@ def followings(request, username):
 def notifications(request):
     # Retrieve all mentions, regardless of the user
     mentions = Mention.objects.all().order_by('-created')
-    
 
     # Get mentioned users using find_mentions function for all mentions
     mention_texts = [mention.post.content if mention.post else mention.comment.post.content for mention in mentions]
