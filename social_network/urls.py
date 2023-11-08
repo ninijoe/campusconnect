@@ -73,4 +73,7 @@ urlpatterns = [
     # URL for Notifications
     path('notifications/', views.notifications, name='notifications'),
 
+    path('save_department/', views.save_department, name='save_department'),
+
+
 ]

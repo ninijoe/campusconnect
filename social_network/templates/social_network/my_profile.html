@@ -71,14 +71,42 @@
                         <label for="gender">Gender</label>
                         <input type="text" id="gender" name="gender" value="{{ user.gender }}" disabled>
                     </div>
-                    <div class="form-group">
-                        <label for="department">Department</label>
-                        <input type="text" id="department" name="department" value="{{ user.department }}" disabled>
-                    </div>
+                    
+                    
                     <div class="form-group">
                         <label for="year-of-study">Year</label>
                         <input type="text" id="year-of-study" name="year-of-study" value="{{ user.year_of_study }}" disabled>
                     </div>
+
+
+                    <form method="post" action="{% url 'save_department' %}">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label for="department">Department</label>
+                            <div class="dropdown">
+                                <button class="btn btn-secondary dropdown-toggle" type="button" id="departmentDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    Select Department
+                                </button>
+                                <div class="dropdown-menu" aria-labelledby="departmentDropdown">
+                                    {% for code, department in form.department.choices %}
+                                        <a class="dropdown-item" href="#" onclick="selectDepartment('{{ code }}')">{{ department }}</a>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    
+                        <input type="hidden" id="selectedDepartment" name="department" value="{{ form.department.value }}">
+                    
+                        <button type="submit" class="btn btn-primary">Save Department</button>
+                    </form>
+                    
+                    <script>
+                        function selectDepartment(departmentCode) {
+                            document.getElementById('selectedDepartment').value = departmentCode;
+                        }
+                    </script>
+
+
                     <div class="following-followers">
                         <div class="followers">
                             <strong style="color: rgb(71, 115, 217);">Followers:</strong>
@@ -150,7 +178,7 @@
     <div class="row">
         <div class="col-md-13 offset-md-0.3">
             {% for post in posts %}
-            <div class="card mb-3" style="border: 1.5px solid black; width:85%;">
+            <div class="card mb-3" style="border: 1.5px solid black; width: 90%;">
                 <div class="card-header">
                     {% if post.author.profile_photo %}
                         <img src="{{ post.author.profile_photo.url }}" alt="{{ post.author.username }} Profile Picture" class="profile-picture">

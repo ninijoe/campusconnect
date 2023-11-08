@@ -81,6 +81,8 @@ class Comment(models.Model):
         return f"@{self.user} commented on {self.post}, on {formatted_time}"
     
 
+
+
 class Mention(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='mentions')
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='mentions', null=True)

@@ -6,6 +6,27 @@ from .models import Comment
 from django import forms
 from .models import Post
 
+DEPARTMENT_CHOICES = [
+    ('ABE', 'ABE (Adult Basic Education)'),
+    ('Design', 'Design and Performing Arts'),
+    ('Arts', 'Arts and Social Sciences'),
+    ('Business', 'Business and Management'),
+    ('Education', 'Education'),
+    ('ESL', 'ESL (English as a Second Language)'),
+    ('EXPO', 'EXPO (Exploratory Studies)'),
+    ('Health', 'Health Sciences'),
+    ('HighSchool', 'High School @ VIU'),
+    ('HumanServices', 'Human Services'),
+    ('Indigenous', 'Indigenous Studies'),
+    ('Science', 'Science, Engineering and Technology'),
+    ('Trades', 'Trades and Applied Technology'),
+    ('Tourism', 'Tourism, Recreation and Hospitality'),
+]
+
+
+class DepartmentForm(forms.Form):
+    department = forms.ChoiceField(choices=DEPARTMENT_CHOICES, widget=forms.Select(attrs={'class': 'form-control'}))
+
 class PostForm(forms.ModelForm):
     class Meta:
         model = Post

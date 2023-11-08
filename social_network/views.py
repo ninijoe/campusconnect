@@ -460,17 +460,39 @@ def followings(request, username):
     followings = user.following.all()
     return render(request, 'social_network/followings.html', {'user': user, 'followings': followings})
 
+
+
+
 @login_required
 def notifications(request):
-    # Retrieve all mentions, regardless of the user
+    # Retrieve all mentions
     mentions = Mention.objects.all().order_by('-created')
 
-    # Get mentioned users using find_mentions function for all mentions
+    # Get mentioned users using the find_mentions function for all mentions
     mention_texts = [mention.post.content if mention.post else mention.comment.post.content for mention in mentions]
     mentioned_users = find_mentions(" ".join(mention_texts))
 
+    # Filter mentioned users to only include the currently logged-in user
+    mentioned_user = [user for user in mentioned_users if user.username == request.user.username]
+
     print("Logged-in User:", request.user.username)
-    print("Mentioned Users:", [user.username for user in mentioned_users])
+    print("Mentioned User:", [user.username for user in mentioned_user])
 
-    return render(request, 'social_network/notifications.html', {'user': request.user, 'mentions': mentions, 'mentioned_users': mentioned_users})
+    return render(request, 'social_network/notifications.html', {'user': request.user, 'mentions': mentions, 'mentioned_users': mentioned_user})
 
+
+
+
+
+def save_department(request):
+    if request.method == 'POST':
+        form = DepartmentForm(request.POST)
+        if form.is_valid():
+            new_department = form.cleaned_data['department']
+            request.user.department = new_department
+            request.user.save()
+            return redirect('my_profile')  # Redirect back to the profile page
+
+    # If the form is not valid or it's a GET request, render the profile page
+    form = DepartmentForm(initial={'department': request.user.department})
+    return render(request, 'my_profile.html', {'form': form})

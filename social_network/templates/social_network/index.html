@@ -26,7 +26,7 @@
         <div class="col-md-13 offset-md-0.3">
             
             {% for post in posts %}
-            <div class="card mb-3" style="border: 1.5px solid black;">
+            <div class="card mb-3" style="border: 1.5px solid black; width: 100%;">
                 <div class="card-header">
                     {% if post.author.profile_photo %}
                         <img src="{{ post.author.profile_photo.url }}" alt="{{ post.author.username }} Profile Picture" class="profile-picture">
