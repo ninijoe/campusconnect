@@ -62,6 +62,16 @@ This includes our job as creators of CampusConnect to protect their personal inf
 Users are given the ability to create their own posts on their account. These posts are going to be the main form of communication of the site keeping discussions public rather than including private messaging. This choice was made in order to give other users the ability to see advice given to other users and possibly answer questions they might have but are not sure how to ask.
 This works towards our key goal for CampusConnect to make it a public social directory open to all.
 
+### Feature 6 : [Receiving Notifications]
+
+#### Description
+Users are given the ability to monitor activity of other users they follow. On clicking on the notifications page now added on the website, a user may see likes on their post, comments, and new posts made by other users. This is more of a speciality feature than a required feature that will allow easier access and communications with others by having a quick link to new conversations other users generate. 
+
+### Feature 7 : [Group Features]
+
+#### Description
+Users are given the ability to join "groups" on the webpage and see other active users of the group. This feature has lots of room for growth and will intially just be in the form of a list of other users of the group. Projections for this feature will allow a seperate group page with group post options to have a closed section for questions and answers related to their field.
+
 ## User Interfaces/Product Visualizations
 
 - ![Signup](./Signup_Page.jpg)
@@ -82,6 +92,13 @@ Additional feature of the page is the ability for the user to create a new post 
 - ![Discover](./Discover_Page.jpg)
 Discover Page has been chosen as the first page the user will access after first creating their account. This has been chosen as it directly gives the user access to other users of CampusConnect and helps direct them to making their first connection with another user, the main goal of the site. 
 In the future the discover page is planned to be more advanced with specific tabs to different departments to help the user connect with other users they may have specific questions for.
+
+![Notifications](./Notifications.png)
+Notifications Page has been chosen as a supporting page to many of the other actions that occur on CampusConnect. This will allow the user to have shortcuts to each different feature on the website.
+This will allow the user to see posts made by other users they follow, comments, likes, and more as the page grows. This is an important feature for a social directory as it allows for easier access for communication between others.
+
+- Groups Page
+Groups Page is currently being researched and implemented and will hopefully be fully developed for the next phase. This is currently brainstormed as a separate page that will allow the user to access different groups by department in order to find users that have more in common with them. This section will be further expanded on as the development continues.
 
 ## Key Use Cases/Scenarios
 
@@ -113,6 +130,11 @@ Discovering new users is the main goal of CampusConnect and this is one of the k
 #### Description
 When the user makes the decision to create a new post they will first go to their My Profile page. Upon entry they may click on the button titled "Creat Post". This will prompt the user to enter any question or discussion into a text box and post it. Upon clicking the post button this sends a request to the application to publish the post on the Home Page.
 With the post now being public any other user that is following the current user will now have access to view their latest post in their Home Page as well.
+
+### Use Case 5: Joining a group:
+
+#### Description
+When the user makes the decision to join a group, they will go to the Groups page. Upon entry they may click on different groups from a variety of departments and "follow it". After this prompt the user may view other users on the group page to have direct contact with them. In the future this feature may link together with creating a new post in order to make a "Group post".
 
 ## Non-Functional Requirements
 
