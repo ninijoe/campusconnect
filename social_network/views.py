@@ -370,9 +370,20 @@ def display_posts(request):
 
 def discover(request):
     # Retrieve all users
-    all_users = list(User.objects.all())  # Replace with your custom user profile model if needed
-    # Shuffle the list to randomize the order
-    random.shuffle(all_users)
+    all_users = User.objects.all()
+
+    # Get the search query from the request
+    search_query = request.GET.get('search', '')
+
+    # Apply filtering based on username, first_name, and last_name
+    if search_query:
+        all_users = all_users.filter(
+            Q(username__icontains=search_query) |
+            Q(first_name__icontains=search_query) |
+            Q(last_name__icontains=search_query)
+        )
+
+    # Render the template with the filtered queryset
     return render(request, 'social_network/discover.html', {'all_users': all_users})
 
 def settings(request):
@@ -435,12 +446,6 @@ def signup(request):
     else:
         return render(request, "social_network/signup.html", {'csrf_token': csrf.get_token(request)})
 
-def discover(request):
-    # Retrieve all users
-    all_users = list(User.objects.all())  # Replace with your custom user profile model if needed
-    # Shuffle the list to randomize the order
-    random.shuffle(all_users)
-    return render(request, 'social_network/discover.html', {'all_users': all_users})
 
 def user_posts(request, username):
     try:
