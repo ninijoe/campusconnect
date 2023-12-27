@@ -15,7 +15,6 @@
                     <div class="card-body">
                         <h3 class="card-title" style="font-size: 1rem;"><a href="{% url 'user_profile' follower.username %}">@{{ follower.username }}</a></h3>
                         <p class="card-text" style="font-size: 0.8rem; font-weight: bold; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ follower.first_name|title }} <span></span> {{ follower.last_name|title }}</p>
-                        <h5 class="card-text" style="font-size: 0.5rem; font-weight: bold; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: green;">{{ follower.department|title }} ; year {{ follower.year_of_study }}</h5>
                     </div>
                 </div>
             </div>

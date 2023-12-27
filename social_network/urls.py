@@ -77,5 +77,6 @@ urlpatterns = [
 
     path('delete_account/', views.delete_account, name='delete_account'),
 
+    path('like_post/<int:post_id>/', views.like_post, name='like_post'),
 
 ]

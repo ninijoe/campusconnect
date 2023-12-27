@@ -6,7 +6,7 @@
     
     <ul class="list-group">
         {% for mention in mentions %}
-            {% if request.user.username in mention.post.content %}
+            {% if request.user.username in mention.post.content or mention.comment and request.user.username in mention.comment.content %}
                 <li class="list-group-item" style="width: 75%;">
                     <div class="d-flex align-items-center">
                         <img src="{% if mention.user.profile_photo %}{{ mention.user.profile_photo.url }}{% else %}{% static 'path_to_default_image.jpg' %}{% endif %}" alt="{{ mention.user.username }} Profile Photo" class="rounded-circle mr-2" style="width: 40px; height: 40px; object-fit: cover;">
@@ -17,7 +17,7 @@
                     {% if mention.post %}
                         mentioned you in a post:
                         <p class="mb-0">{{ mention.post.content }}</p>
-                    {% else %}
+                    {% elif mention.comment %}
                         mentioned you in a comment:
                         <p class="mb-0">{{ mention.comment.content }}</p>
                     {% endif %}

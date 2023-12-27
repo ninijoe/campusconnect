@@ -165,6 +165,7 @@
                     {% endif %}
                     <strong><a href="{% url 'user_profile' post.author.username %}">@{{ post.author }}</a></strong>
                     <small class="text-muted">{{ post.created }}</small>
+                    
                 </div>
                 <div class="card-body" style="background-color: rgb(142, 188, 207);">
                     <p class="card-text">{{ post.content }}</p>

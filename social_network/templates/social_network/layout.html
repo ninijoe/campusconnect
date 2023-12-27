@@ -17,6 +17,8 @@
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <!-- Add this in the head of your HTML file -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
 
     <!-- Add Bootstrap CSS link here -->
@@ -62,11 +64,14 @@
             </a>
         </div>
         <div class="nav-item">
-            <a href="{% url 'notifications' %}" class="nav-link {% if request.path == '/notifications/' %}active{% endif %}">
+            <a href="{% url 'notifications' %}" class="nav-link {% if request.path == '/notifications/' %}active{% endif %}" id="notifications-link">
                 <i class="fas fa-bell"></i>
                 Notifications
+                <span id="notifications-badge" class="badge badge-pill badge-danger">0</span>
             </a>
         </div>
+        
+            
         <div class="nav-item">
             <a href="{% url 'settings' %}" class="nav-link {% if request.path == '/settings/' %}active{% endif %}">
                 <i class="fas fa-cog"></i>
@@ -146,14 +151,37 @@
     <div class="sponsored-ads" style="background-color: rgb(235, 214, 214); text-align: center; width: 200px; position: absolute; top: 95px; left: 82%; bottom: 35px; border: 1.5px solid black; padding: 10px;">
         <div style="margin: 0 auto; max-width: 150px; margin-left: 10px; font-weight: bold;">
             <h4>NEWS</h4>
-            <p style="font-size: 12px; margin: 0;">Welcome to CampusConnect. You are using the beta version of this site, meaning there are plenty more changes to come. This site started as a computer science course project run by:</p>
+            <p style="font-size: 12px; margin: 0;">Welcome to CampusConnect. You are using the beta version of this site, meaning there are plenty more changes to come.  <br> A Joseph Ephraim Production:</p>
             <ul style="list-style: none; padding-left: 0; ">
-                <li style="font-size: 10px; margin: 0;">Joe - <a href="mailto:josephephraim68@yahoo.com">josephephraim68@yahoo.com</a></li>
+                <li style="font-size: 10px; margin: 0;"><a href="mailto:josephephraim68@yahoo.com">josephephraim68@yahoo.com</a></li>
             </ul>
-            <p style="font-size: 12px; margin: 0;">You can me via the email provided with any questions you may have.</p>
+            <p style="font-size: 12px; margin: 0;"> Feel free to use this site to share your thoughts and opinions, connect with new people, post an item or event for sale and many more. You can contact me via the email provided with any questions you may have.</p>
         </div>
     </div>
     
     
 </body>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Get the notifications link and badge
+        const notificationsLink = document.getElementById('notifications-link');
+        const notificationsBadge = document.getElementById('notifications-badge');
+    
+        // Check if there are unread notifications
+        const unreadCount = parseInt('{{ unread_count }}');  // You need to pass the unread count from your backend
+    
+        // Update the badge content
+        if (unreadCount > 0) {
+            notificationsBadge.innerText = unreadCount;
+            notificationsBadge.style.display = 'inline-block';  // Show the badge
+        } else {
+            notificationsBadge.style.display = 'none';  // Hide the badge
+        }
+    
+        // Add a click event listener to hide the badge when the notifications link is clicked
+        notificationsLink.addEventListener('click', function () {
+            notificationsBadge.style.display = 'none';  // Hide the badge
+        });
+    });
+    </script>
 </html>

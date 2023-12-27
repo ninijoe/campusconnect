@@ -60,6 +60,9 @@ class Post(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE)
     content = models.TextField(max_length=500)
     created = models.DateTimeField(auto_now_add=True)
+    likes = models.ManyToManyField(User, related_name='liked_posts', blank=True)
+    image = models.ImageField(upload_to='post_images/', null=True, blank=True)
+    
 
     def __str__(self):
         # Format the 'created' timestamp to a user-friendly string

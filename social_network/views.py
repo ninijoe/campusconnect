@@ -363,10 +363,21 @@ def create_post(request):
 @login_required(login_url='login')
 def display_posts(request):
     user = request.user
-    posts = Post.objects.filter(author=user).order_by('-created')
-    form = PostForm()
 
+    if request.method == "POST":
+        form = PostForm(request.POST, request.FILES)
+        if form.is_valid():
+            post = form.save(commit=False)
+            post.author = user
+            post.save()
+            return redirect('display_posts')
+
+    else:
+        form = PostForm()
+
+    posts = Post.objects.filter(author=user).order_by('-created')
     return render(request, 'social_network/my_profile.html', {'form': form, 'posts': posts})
+
 
 def discover(request):
     # Retrieve all users
@@ -484,6 +495,17 @@ def notifications(request):
     print("Mentioned User:", [user.username for user in mentioned_user])
 
     return render(request, 'social_network/notifications.html', {'user': request.user, 'mentions': mentions, 'mentioned_users': mentioned_user})
+
+
+def like_post(request, post_id):
+    post = get_object_or_404(Post, id=post_id)
+
+    if request.user in post.likes.all():
+        post.likes.remove(request.user)
+    else:
+        post.likes.add(request.user)
+
+    return redirect('index')
 
 
 # In your views.py
