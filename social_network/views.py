@@ -486,7 +486,17 @@ def notifications(request):
     return render(request, 'social_network/notifications.html', {'user': request.user, 'mentions': mentions, 'mentioned_users': mentioned_user})
 
 
+# In your views.py
+@login_required
+def delete_account(request):
+    if request.method == 'POST':
+        # Delete user account logic
+        user = request.user
+        user.delete()
+        logout(request)  # Log out the user after deleting the account
+        return redirect('index')  # Redirect to the home page or wherever you want
 
+    return render(request, 'social_network/delete_account.html')
 
 
 def save_department(request):

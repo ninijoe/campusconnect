@@ -28,7 +28,6 @@
                     <div class="card-body">
                         <a href="{% url 'user_profile' user.username %}" style="font-weight: bold;">@{{ user.username }}</a>
                         <p class="card-text" style="font-size: 0.8rem; font-weight: bold; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ user.first_name|title}} <span></span> {{user.last_name|title}}</p>
-                        <h5 class="card-text" style="font-size: 0.5rem; font-weight: bold; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: green;">{{ user.department|title}} ; year {{ user.year_of_study}}</h5>
                     </div>
                 </div>
             </div>

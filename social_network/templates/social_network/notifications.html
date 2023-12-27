@@ -4,17 +4,24 @@
 {% block main_content %}
 <div class="content" style="background-color: rgb(251, 245, 245); width: 100%; position: absolute; top: 60px; left: 10%; bottom: 0; overflow-y: auto;">
     
-    <ul>
+    <ul class="list-group">
         {% for mention in mentions %}
-            {% if request.user == mention.mentioned_user %}
-                <li>
+            {% if request.user.username in mention.post.content %}
+                <li class="list-group-item" style="width: 75%;">
+                    <div class="d-flex align-items-center">
+                        <img src="{% if mention.user.profile_photo %}{{ mention.user.profile_photo.url }}{% else %}{% static 'path_to_default_image.jpg' %}{% endif %}" alt="{{ mention.user.username }} Profile Photo" class="rounded-circle mr-2" style="width: 40px; height: 40px; object-fit: cover;">
+                        <span class="font-weight-bold">
+                            <a href="{% url 'user_profile' mention.user.username %}">@{{ mention.user.username }}</a>
+                        </span>
+                    </div>
                     {% if mention.post %}
-                        <a href="{% url 'user_profile' mention.user.username %}">@{{ mention.user.username }}</a> mentioned you in a post:
-                        <p>"{{ mention.post.content }}"</p>
+                        mentioned you in a post:
+                        <p class="mb-0">{{ mention.post.content }}</p>
                     {% else %}
-                        <a href="{% url 'user_profile' mention.user.username %}">@{{ mention.user.username }}</a> mentioned you in a comment:
-                        <p>"{{ mention.comment.content }}"</p>
+                        mentioned you in a comment:
+                        <p class="mb-0">{{ mention.comment.content }}</p>
                     {% endif %}
+                    <small class="text-muted">Time: {{ mention.created | date:"F j, Y, g:i a" }}</small>
                 </li>
             {% endif %}
         {% endfor %}

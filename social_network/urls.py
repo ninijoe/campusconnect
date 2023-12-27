@@ -75,5 +75,7 @@ urlpatterns = [
 
     path('save_department/', views.save_department, name='save_department'),
 
+    path('delete_account/', views.delete_account, name='delete_account'),
+
 
 ]
