@@ -36,14 +36,16 @@
                             text-shadow: -1px -1px 0 black, 1px -1px 0 black, -1px 1px 0 black, 1px 1px 0 black;">
                     Welcome, @{{ request.user.username }}</h1>
             </div>
+            
             <div class="col-md-6 text-right">
                 <h1 style="font-weight: bold; font-size: 30px;  color: rgb(252, 250, 250); margin-top: 10px;
                             text-shadow: -1px -1px 0 black, 1px -1px 0 black, -1px 1px 0 black, 1px 1px 0 black;">
                     CampusConnect</h1>
             </div>
         </div>
+        
     </div>
-
+    
     <div class="navbar" style="background-color: rgb(25, 23, 23); width: 190px; position: absolute; top: 63px; bottom: 0; left: 0; text-align: left;">
         <div class="nav-item">
             <a href="{% url 'my_profile' %}" class="nav-link {% if request.path == '/my_profile/' %}active{% endif %}">
@@ -63,13 +65,17 @@
                 Discover
             </a>
         </div>
+        <!-- Include this in your template where the navbar is located -->
         <div class="nav-item">
             <a href="{% url 'notifications' %}" class="nav-link {% if request.path == '/notifications/' %}active{% endif %}" id="notifications-link">
                 <i class="fas fa-bell"></i>
                 Notifications
-                <span id="notifications-badge" class="badge badge-pill badge-danger">0</span>
+                {% if unseen_notification_count > 0 %}
+                    <span id="notifications-badge" class="badge badge-pill badge-danger">{{ unseen_notification_count }}</span>
+                {% endif %}
             </a>
         </div>
+
         
             
         <div class="nav-item">
@@ -109,6 +115,7 @@
         <!-- Add your content here -->
         <div class="main-content" style="overflow-y: auto; height: calc(100% - 2.5rem); padding: 20px; margin: 10px;">
             {% block main_content %}
+                
                 {% if show_content %} 
                     <h1>Welcome to CampusConnect @{{ user.username }}- Your Campus Social Network!</h1>
 
@@ -156,8 +163,13 @@
                 <li style="font-size: 10px; margin: 0;"><a href="mailto:josephephraim68@yahoo.com">josephephraim68@yahoo.com</a></li>
             </ul>
             <p style="font-size: 12px; margin: 0;"> Feel free to use this site to share your thoughts and opinions, connect with new people, post an item or event for sale and many more. You can contact me via the email provided with any questions you may have.</p>
+        </div><br><br><br><br>
+        <div class="user-links">
+            <a href="{% url 'terms_of_service' %}" style="color: #090909;">Terms</a> |
+            <a href="{% url 'privacy_policy' %}" style="color: #050505;">Privacy</a>
         </div>
     </div>
+
     
     
 </body>

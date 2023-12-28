@@ -1,0 +1,20 @@
+<!-- social_network/templates/social_network/change_email.html -->
+{% extends "social_network/layout.html" %}
+
+
+
+{% block main_content %}
+    {% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+        <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+    <h2>Change Email</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Change Email</button>
+    </form>
+{% endblock %}

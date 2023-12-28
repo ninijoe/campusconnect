@@ -1,0 +1,12 @@
+<!-- social_network/templates/social_network/delete_account.html -->
+
+{% extends "social_network/layout.html" %}
+
+{% block main_content %}
+    <h2>Delete Account</h2>
+    <p>Are you sure you want to delete your account? This action cannot be undone.</p>
+    <form method="post" action="{% url 'delete_account' %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Delete Account</button>
+    </form>
+{% endblock %}

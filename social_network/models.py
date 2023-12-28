@@ -25,6 +25,7 @@ class User(AbstractUser):
         help_text='Specific permissions for this user.',
     )
 
+    username = models.CharField(max_length=150, unique=True)
     profile_photo = models.ImageField(upload_to='profile_photos/', null=True, blank=True)
     first_name = models.CharField(max_length=30, blank=True)
     last_name = models.CharField(max_length=30, blank=True)
@@ -61,6 +62,7 @@ class Post(models.Model):
     content = models.TextField(max_length=500)
     created = models.DateTimeField(auto_now_add=True)
     likes = models.ManyToManyField(User, related_name='liked_posts', blank=True)
+    dislikes = models.ManyToManyField(User, related_name='disliked_posts', blank=True)
     image = models.ImageField(upload_to='post_images/', null=True, blank=True)
     
 
@@ -91,3 +93,4 @@ class Mention(models.Model):
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='mentions', null=True)
     comment = models.ForeignKey(Comment, on_delete=models.CASCADE, related_name='mentions', null=True)
     created = models.DateTimeField(auto_now_add=True)
+    seen = models.BooleanField(default=False)  # Add this line to include the 'seen' field

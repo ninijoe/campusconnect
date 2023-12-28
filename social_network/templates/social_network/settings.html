@@ -1,13 +1,20 @@
 {% extends "social_network/layout.html" %}
 
-
 {% block main_content %}
     <!-- Your existing content goes here -->
 
     <a href="{% url 'logout_view' %}" class="btn btn-danger">Logout</a>
-    
-{% endblock %}
 
+    <a href="{% url 'change_username_view' %}" class="btn btn-primary">Change Username</a>
+
+    <a href="{% url 'change_email' %}" class="btn btn-warning">Change Email</a>
+
+    <a href="{% url 'change_password' %}" class="btn btn-success">Change Password</a>
+
+    <!-- Delete Account Button with Confirmation -->
+    <a href="{% url 'delete_account' %}" class="btn btn-danger" id="deleteAccountBtn">Delete Account</a>
+
+{% endblock %}
 
 {% block nav_home_active %}
     active

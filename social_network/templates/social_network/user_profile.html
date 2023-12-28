@@ -117,13 +117,27 @@
                             {% csrf_token %}
                             <button type="submit" class="btn btn-link" >
                                 {% if user in post.likes.all %}
-                                    <i class="fas fa-thumbs-down" style="color: red;"></i> 
+                                    <i class="fas fa-thumbs-up" style="color: blue;"></i> Like
                                 {% else %}
-                                    <i class="fas fa-thumbs-up" style="color: blue;"></i>
+                                    <i class="far fa-thumbs-up" style="color: blue;"></i> Like
                                 {% endif %}
                             </button>
-                            <span>{{ post.likes.count }} likes</span>
+                            <span>{{ post.likes.count }}</span>
                         </form>
+                        
+                        <form method="post" action="{% url 'dislike_post' post.id %}" style="display: inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-link" >
+                                {% if user in post.dislikes.all %}
+                                    <i class="fas fa-thumbs-down" style="color: red;"></i> Dislike
+                                {% else %}
+                                    <i class="far fa-thumbs-down" style="color: red;"></i> Dislike
+                                {% endif %}
+                            </button>
+                            <span>{{ post.dislikes.count }}</span>
+                        </form>
+                        
+                        
                     </div>
                     <div class="card-body" style="background-color: #f0f0f0;">
                         <p class="card-text">{{ post.content }}</p>

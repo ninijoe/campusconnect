@@ -15,6 +15,9 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
 import datetime
 import logging
+from .forms import ChangeUsernameForm
+from django.contrib.auth.views import PasswordChangeView
+from django.urls import reverse_lazy
 import re
 from django.db.models import Q
 import random
@@ -30,10 +33,32 @@ from django.http import HttpResponseServerError
 from django.utils import timezone
 from django.utils.html import escape
 from django.utils.safestring import mark_safe
+from .forms import ChangeEmailForm
+from django.contrib.auth.views import PasswordResetView
+from .forms import CustomPasswordResetForm  # Import your custom form if needed
+
+
+
+@login_required
+def change_email(request):
+    if request.method == 'POST':
+        form = ChangeEmailForm(request.POST)
+        if form.is_valid():
+            new_email = form.cleaned_data['new_email']
+            request.user.email = new_email
+            request.user.save()
+            messages.success(request, 'Email changed successfully.')
+            return redirect('change_email')  # Redirect to the user's profile page
+    else:
+        form = ChangeEmailForm()
+
+    return render(request, 'social_network/change_email.html', {'form': form,})
+
 
 @login_required
 def index(request):
-    show_signup_content = not request.user.is_authenticated
+    # Check if the user has clicked on the "Home" link
+    home_link_clicked = request.session.pop('home_link_clicked', False)
 
     # Get the posts by the user and the users they follow
     user = request.user
@@ -42,12 +67,19 @@ def index(request):
     form = PostForm()  # Include the form for creating a new post
 
     if request.method == "POST":
-        # Handle user signup
-        # ...
+        # Check if the form is a signup form
+        if 'signup' in request.POST:
+            signup_form = SignupForm(request.POST)
+            if signup_form.is_valid():
+                # Process the signup form
+                # ...
 
-        show_signup_content = False  # After signup, don't show signup content
+                # After signup, don't show signup content
+                return redirect('index')
+        
+    return render(request, 'social_network/index.html', {'form': form, 'home_link_clicked': home_link_clicked, 'posts': posts})
 
-    return render(request, 'social_network/index.html', {'form': form,'show_signup_content': show_signup_content, 'posts': posts})
+
 
 
 def find_mentions(text):
@@ -359,6 +391,32 @@ def create_post(request):
         return redirect('index')  # Change 'index' to the appropriate URL name
 
 
+def change_password(request):
+    if request.method == "POST":
+        new_password = request.POST['new_password']
+        confirm_password = request.POST['confirm_password']
+
+        if new_password == confirm_password:
+            # Change the user's password
+            request.user.set_password(new_password)
+            request.user.save()
+
+            # Reauthenticate the user with the updated password
+            user = authenticate(request, username=request.user.username, password=new_password)
+            
+            if user:
+                login(request, user)
+
+                messages.success(request, 'Password successfully changed.')
+                return redirect('change_password')  # Redirect to the change password page
+            else:
+                messages.error(request, 'Failed to authenticate user with new password.')
+        else:
+            messages.error(request, 'Passwords do not match.')
+
+    return render(request, 'social_network/change_password.html')
+
+
 
 @login_required(login_url='login')
 def display_posts(request):
@@ -423,12 +481,13 @@ def logout_view(request):
     logout(request)
     return render(request, "social_network/login.html", {'csrf_token': csrf.get_token(request)})
 
-@csrf_exempt  # You may need to exempt CSRF protection for this view
+@csrf_exempt
 def signup(request):
     if request.method == "POST":
-        # Take in the user username and email submitted in the signup form
+        # Take in the user username, email, and other fields submitted in the signup form
         username = request.POST["username"]
         email = request.POST["email"]
+        # ... other fields ...
 
         # Ensure the password matches the confirmation
         password = request.POST["password"]
@@ -441,10 +500,11 @@ def signup(request):
         # Attempt to create a new user
         try:
             user = User.objects.create_user(username, email, password)
+            # ... set other fields ...
             user.save()
         except IntegrityError:
             return render(request, "social_network/signup.html", {
-                "message": "Username already taken."
+                "message": "Username or email already taken."
             })
 
         # Log the user in
@@ -456,6 +516,9 @@ def signup(request):
         })
     else:
         return render(request, "social_network/signup.html", {'csrf_token': csrf.get_token(request)})
+
+
+
 
 
 def user_posts(request, username):
@@ -477,7 +540,33 @@ def followings(request, username):
     return render(request, 'social_network/followings.html', {'user': user, 'followings': followings})
 
 
+@login_required
+def change_username(request):
+    if request.method == 'POST':
+        form = ChangeUsernameForm(request.POST, instance=request.user)
+        if form.is_valid():
+            # Check if the provided password is correct
+            password = form.cleaned_data['password']
+            user = request.user
 
+            if not user.check_password(password):
+                messages.error(request, 'Incorrect password. Username not changed.')
+            else:
+                # Save the changes only if the password is correct
+                form.save()
+                messages.success(request, 'Username changed successfully.')
+
+            return render(request, 'social_network/change_username.html', {'form': form})
+    else:
+        form = ChangeUsernameForm(instance=request.user)
+
+    return render(request, 'social_network/change_username.html', {'form': form})
+
+def terms_of_service(request):
+    return render(request, 'social_network/terms_of_service.html')
+
+def privacy_policy(request):
+    return render(request, 'social_network/privacy_policy.html')
 
 @login_required
 def notifications(request):
@@ -491,12 +580,33 @@ def notifications(request):
     # Filter mentioned users to only include the currently logged-in user
     mentioned_user = [user for user in mentioned_users if user.username == request.user.username]
 
-    print("Logged-in User:", request.user.username)
-    print("Mentioned User:", [user.username for user in mentioned_user])
+    # Calculate the count of unseen notifications
+    unseen_notification_count = Mention.objects.filter(user=request.user, seen=False).count()
 
-    return render(request, 'social_network/notifications.html', {'user': request.user, 'mentions': mentions, 'mentioned_users': mentioned_user})
+    # Mark all notifications as seen after calculating the count
+    Mention.objects.filter(user=request.user, seen=False).update(seen=True)
+
+    return render(request, 'social_network/notifications.html', {'unseen_notification_count': unseen_notification_count, 'mentions': mentions, 'mentioned_users': mentioned_user})
 
 
+def delete_account_view(request):
+    if request.method == 'POST' and request.user.is_authenticated:
+        # Optionally, you may want to add a confirmation step here
+
+        # Delete the user and associated information
+        user = request.user
+        user.delete()
+
+        messages.success(request, 'Your account has been deleted.')
+        return render(request, 'social_network/signup.html')  # Redirect to the signup page after deletion
+
+    elif not request.user.is_authenticated:
+        # If the user is not authenticated, redirect to the signup page
+        return render(request, 'social_network/signup.html')
+
+    return render(request, 'social_network/signup.html')  
+
+@login_required
 def like_post(request, post_id):
     post = get_object_or_404(Post, id=post_id)
 
@@ -505,8 +615,18 @@ def like_post(request, post_id):
     else:
         post.likes.add(request.user)
 
-    return redirect('index')
+    return redirect('index')  # You can redirect to the post details or another page
 
+@login_required
+def dislike_post(request, post_id):
+    post = get_object_or_404(Post, id=post_id)
+
+    if request.user in post.dislikes.all():
+        post.dislikes.remove(request.user)
+    else:
+        post.dislikes.add(request.user)
+
+    return redirect('index')  # You can redirect to the post details or another page
 
 # In your views.py
 @login_required

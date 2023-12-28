@@ -4,6 +4,12 @@ from . import views
 from django.conf import settings
 from django.conf.urls.static import static
 from social_network.views import user_profile
+from .views import change_username
+from .views import terms_of_service, privacy_policy
+from .views import delete_account_view
+
+
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -78,5 +84,22 @@ urlpatterns = [
     path('delete_account/', views.delete_account, name='delete_account'),
 
     path('like_post/<int:post_id>/', views.like_post, name='like_post'),
+
+    path('change-username/', change_username, name='change_username_view'),
+
+    path('dislike_post/<int:post_id>/', views.dislike_post, name='dislike_post'),
+
+    path('change-email/', views.change_email, name='change_email'),
+
+    path('terms-of-service/', terms_of_service, name='terms_of_service'),
+
+    path('privacy-policy/', privacy_policy, name='privacy_policy'),
+
+    path('delete_account/', delete_account_view, name='delete_account'),
+
+    path('change_password/', views.change_password, name='change_password'),
+
+
+
 
 ]

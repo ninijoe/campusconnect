@@ -24,6 +24,7 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('social_network.urls')),  # Include app-specific URLs
+    
 ]
 
 if settings.DEBUG:
