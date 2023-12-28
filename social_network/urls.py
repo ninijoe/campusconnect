@@ -11,6 +11,7 @@ from .views import delete_account_view
 
 
 
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('social_network.urls')),  # Include your app's URLs here
@@ -99,7 +100,7 @@ urlpatterns = [
 
     path('change_password/', views.change_password, name='change_password'),
 
-
+    
 
 
 ]

@@ -46,6 +46,7 @@ class ChangeUsernameForm(UserChangeForm):
     class Meta:
         model = User
         fields = ['username']
+        
 
     def clean(self):
         cleaned_data = super().clean()

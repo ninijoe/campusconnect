@@ -107,8 +107,21 @@
                     User Profile
                 {% elif request.resolver_match.url_name == 'notifications' %}
                     Notifications
+                {% elif request.resolver_match.url_name == 'change_email' %}
+                    Change Email
+                {% elif request.resolver_match.url_name == 'change_password' %}
+                    Change Password
+                {% elif request.resolver_match.url_name == 'change_username_view' %}
+                    Change Username
+                {% elif request.resolver_match.url_name == 'delete_account' %}
+                    Delete Account
+                {% elif request.resolver_match.url_name == 'terms_of_service' %}
+                    Terms of Service
+                {% elif request.resolver_match.url_name == 'privacy_policy' %}
+                    Privacy Policy
                 {% endif %}
             </div>
+            
         </div>
         
         <!-- Add your content here -->
@@ -158,16 +171,20 @@
     <div class="sponsored-ads" style="background-color: rgb(235, 214, 214); text-align: center; width: 200px; position: absolute; top: 95px; left: 82%; bottom: 35px; border: 1.5px solid black; padding: 10px;">
         <div style="margin: 0 auto; max-width: 150px; margin-left: 10px; font-weight: bold;">
             <h4>NEWS</h4>
-            <p style="font-size: 12px; margin: 0;">Welcome to CampusConnect. You are using the beta version of this site, meaning there are plenty more improvements to come.  <br> A Joseph Ephraim Production:</p>
-            <ul style="list-style: none; padding-left: 0; ">
-                <li style="font-size: 10px; margin: 0;"><a href="mailto:josephephraim68@yahoo.com">josephephraim68@yahoo.com</a></li>
-            </ul>
+            <p style="font-size: 12px; margin: 0;">Welcome to CampusConnect. You are using the beta version of this site, meaning there are plenty more improvements to come.  <br> </p>
+            
             <p style="font-size: 12px; margin: 0;"> Feel free to use this site to share your thoughts and opinions, connect with new people, post an item or event for sale and many more. You can contact me via the email provided with any questions you may have.</p>
         </div><br><br><br><br>
         <div class="user-links">
             <a href="{% url 'terms_of_service' %}" style="color: #090909;">Terms</a> |
             <a href="{% url 'privacy_policy' %}" style="color: #050505;">Privacy</a>
         </div>
+        <br><br>
+        <p style="font-size: 12px;">A Joseph Ephraim Production</p>
+        <ul style="list-style: none; padding-left: 0; ">
+            
+            <li style="font-size: 10px; margin: 0;"><a href="mailto:josephephraim68@yahoo.com">josephephraim68@yahoo.com</a></li>
+        </ul>
     </div>
 
     
