@@ -33,13 +33,9 @@
     <!-- Bootstrap row -->
     <div class="container-fluid">
         <div class="row">
-            <div class="col-md-6 text-left">
-                <h1 style="font-weight: bold; font-size: 20px; font-family: 'Canva Sans'; color: rgb(252, 250, 250); margin-top: 15px;
-                            text-shadow: -1px -1px 0 black, 1px -1px 0 black, -1px 1px 0 black, 1px 1px 0 black;">
-                    Welcome, @{{ request.user.username }}</h1>
-            </div>
+            
 
-            <div class="col-md-6 text-right">
+            <div class="col-md-6 text-left">
                 <h1 style="font-weight: bold; font-size: 30px;  color: rgb(252, 250, 250); margin-top: 10px;
                             text-shadow: -1px -1px 0 black, 1px -1px 0 black, -1px 1px 0 black, 1px 1px 0 black;">
                     CampusConnect</h1>
@@ -51,6 +47,9 @@
     <nav class="navbar navbar-expand-md navbar-dark bg-dark">
         <div class="container-fluid">
             <div class="navbar-collapse" id="navbarNav">
+                <h1 style="font-weight: bold; font-size: 20px; font-family: 'Canva Sans'; color: rgb(252, 250, 250); margin-top: 15px;
+                            text-shadow: -1px -1px 0 black, 1px -1px 0 black, -1px 1px 0 black, 1px 1px 0 black;">
+                    Welcome, @{{ request.user.username }}</h1>
                 <ul class="navbar-nav ml-auto">
                     <!-- Add your navigation links here -->
                     <li class="nav-item">
@@ -91,44 +90,49 @@
     </nav>
 
     <!-- Your content area -->
-    <div class="content" style="background-color: rgb(251, 245, 245); width: 780px; position: absolute; top: 109px; left: 0%; bottom: 0; overflow: hidden;">
-        <!-- Content navbar -->
-        <div class="content-navbar" style="background-color: #c5d1dd; color: white; padding: 10px; height: 2.5rem; border: 1px solid black; font-weight: bold;">
-            <div class="content-text" style="color: rgb(25, 23, 23);">
-                {% block content_title %}
-                    <!-- Add content title here -->
-                {% endblock %}
-            </div>
-        </div>
-        
-        <!-- Main content -->
-        <div class="main-content" style="overflow-y: auto; height: calc(100% - 2.5rem); padding: 20px; margin: 10px;">
-            {% block main_content %}
-                <!-- Add your main content here -->
-                <p>Your main content goes here.</p>
+<div class="content" style="background-color: rgb(251, 245, 245); width: 80%; position: absolute; top: 116px; left: 0%; bottom: 0; overflow: hidden;">
+    <!-- Content navbar -->
+    <div class="content-navbar" style="background-color: #c5d1dd; color: white; padding: 10px; height: 2.5rem; border: 1px solid black; font-weight: bold;">
+        <div class="content-text" style="color: rgb(25, 23, 23);">
+            {% block content_title %}
+                <!-- Add content title here -->
             {% endblock %}
         </div>
     </div>
+    
+    <!-- Main content -->
+    <div class="main-content" style="overflow-y: auto; height: calc(100% - 2.5rem); padding: 20px; margin: 10px;">
+        {% block main_content %}
+            <!-- Add your main content here -->
+            <p>Your main content goes here.</p>
+        {% endblock %}
+    </div>
+</div>
+
 
     <!-- Sponsored ads with a black border-->
-    <div class="sponsored-ads" style="background-color: rgb(235, 214, 214); text-align: center; width: 200px; position: absolute; top: 109px; left: 80%; bottom: 0px; border: 1.5px solid black; padding: 10px;">
-        <!-- Add sponsored ads content here -->
-        <div style="margin: 0 auto; max-width: 150px; margin-left: 10px; font-weight: bold;">
-            <h4>NEWS</h4>
-            <p style="font-size: 12px; margin: 0;">Welcome to CampusConnect. You are using the beta version of this site, meaning there are plenty more improvements to come.  <br> </p>
-            
-            <p style="font-size: 12px; margin: 0;"> Feel free to use this site to share your thoughts and opinions, connect with new people, post an item or event for sale and many more. You can contact me via the email provided with any questions you may have.</p>
-        </div><br><br><br><br>
+<div class="sponsored-ads" style="background-color: rgb(235, 214, 214); text-align: center; width: 20%; position: absolute; top: 116px; left: 80%; bottom: 0px; border: 1.5px solid black; padding: 35px; box-sizing: border-box;">
+    <!-- Add sponsored ads content here -->
+    <div style="margin: 0 auto; max-width: 80%; margin-left: 10px; font-weight: bold;">
+        <h4>NEWS</h4>
+        <p style="font-size: 12px; margin: 0;">Welcome to CampusConnect. You are using the beta version of this site, meaning there are plenty more improvements to come.  <br> </p>
+        
+        <p style="font-size: 12px; margin: 0;"> Feel free to use this site to share your thoughts and opinions, connect with new people, post an item or event for sale and many more. You can contact me via the email provided with any questions you may have.</p>
+    </div>
+    
+    <!-- New div for additional content -->
+    <div class="additional-content">
         <div class="user-links">
             <a href="{% url 'terms_of_service' %}" style="color: #090909;">Terms</a> |
             <a href="{% url 'privacy_policy' %}" style="color: #050505;">Privacy</a>
         </div>
-        <br><br>
         <p style="font-size: 12px;">A Joseph Ephraim Production</p>
-        <ul style="list-style: none; padding-left: 0; ">
+        <ul style="list-style: none; padding-left: 0; margin: 0;">
             <li style="font-size: 10px; margin: 0;"><a href="mailto:josephephraim68@yahoo.com">josephephraim68@yahoo.com</a></li>
         </ul>
     </div>
+</div>
+
 
     <!-- Add your JavaScript for notifications here -->
     <script>
