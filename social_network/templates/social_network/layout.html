@@ -47,9 +47,7 @@
     <nav class="navbar navbar-expand-md navbar-dark bg-dark">
         <div class="container-fluid">
             <div class="navbar-collapse" id="navbarNav">
-                <h1 style="font-weight: bold; font-size: 20px; font-family: 'Canva Sans'; color: rgb(252, 250, 250); margin-top: 15px;
-                            text-shadow: -1px -1px 0 black, 1px -1px 0 black, -1px 1px 0 black, 1px 1px 0 black;">
-                    Welcome, @{{ request.user.username }}</h1>
+                
                 <ul class="navbar-nav ml-auto">
                     <!-- Add your navigation links here -->
                     <li class="nav-item">
@@ -90,18 +88,23 @@
     </nav>
 
     <!-- Your content area -->
-<div class="content" style="background-color: rgb(251, 245, 245); width: 80%; position: absolute; top: 116px; left: 0%; bottom: 0; overflow: hidden;">
+    <div class="content" style="background-color: rgb(251, 245, 245); width: 80%; position: absolute; top: 116px; left: 0%; bottom: 0; overflow: hidden;">
     <!-- Content navbar -->
     <div class="content-navbar" style="background-color: #c5d1dd; color: white; padding: 10px; height: 2.5rem; border: 1px solid black; font-weight: bold;">
+        <h1 style="font-weight: bold; font-size: 20px;  color: rgb(8, 7, 7); margin-top: 0px;">
+                    Welcome, @{{ request.user.username }}
+                </h1>
         <div class="content-text" style="color: rgb(25, 23, 23);">
+            
             {% block content_title %}
                 <!-- Add content title here -->
             {% endblock %}
         </div>
+        
     </div>
     
     <!-- Main content -->
-    <div class="main-content" style="overflow-y: auto; height: calc(100% - 2.5rem); padding: 20px; margin: 10px;">
+    <div class="main-content" style="background: linear-gradient(to bottom, rgb(251, 245, 245), rgb(240, 230, 230), rgb(230, 220, 220), rgb(220, 210, 210)); overflow-y: auto; height: calc(100% - 2.5rem); padding: 20px; margin: 10px;">
         {% block main_content %}
             <!-- Add your main content here -->
             <p>Your main content goes here.</p>
@@ -136,6 +139,10 @@
 
     <!-- Add your JavaScript for notifications here -->
     <script>
+        function goBack() {
+            window.history.back();
+        }
+
         document.addEventListener('DOMContentLoaded', function () {
             // Get the notifications link and badge
             const notificationsLink = document.getElementById('notifications-link');

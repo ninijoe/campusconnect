@@ -153,6 +153,28 @@ def user_profile(request, username):
 
     return render(request, 'social_network/user_profile.html', {'user': user})
 
+
+@login_required
+def like_comment(request, comment_id):
+    comment = get_object_or_404(Comment, id=comment_id)
+
+    # Check if the user has already liked the comment
+    if request.user in comment.likes.all():
+        # User already liked, so unlike
+        comment.likes.remove(request.user)
+    else:
+        # User hasn't liked, so like
+        comment.likes.add(request.user)
+
+    # Redirect back to the referring page (the page where the comment was liked/unliked)
+    referring_page = request.META.get('HTTP_REFERER')
+    if referring_page:
+        return redirect(referring_page)
+
+    # Handle other cases or return an error response if needed
+    return HttpResponseServerError("Invalid request.")
+
+
 @login_required(login_url='login')
 def create_comment(request, post_id):
     # Retrieve the post object using the post_id
@@ -549,7 +571,7 @@ def signup(request):
         login(request, user)
 
         # Render the index page with the specified content
-        return render(request, 'social_network/index.html', {
+        return render(request, 'social_network/discover.html', {
             "show_content": True  # Add this context variable
         })
     else:

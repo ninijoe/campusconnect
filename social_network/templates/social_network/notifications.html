@@ -2,8 +2,8 @@
 {% load static %}
 
 {% block main_content %}
-<div class="content" style="background-color: rgb(251, 245, 245); width: 100%; position: absolute; top: 60px; left: 10%; bottom: 0; overflow-y: auto;">
-    
+<div class="content" style="background: linear-gradient(to bottom, rgb(251, 245, 245), rgb(240, 230, 230), rgb(230, 220, 220), rgb(220, 210, 210)); width: 100%; position: absolute; top: 60px; left: 10%; bottom: 0; overflow-y: auto;">
+   
     <ul class="list-group">
         {% for mention in mentions %}
             {% if request.user.username in mention.post.content or mention.comment and request.user.username in mention.comment.content %}

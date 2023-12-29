@@ -7,6 +7,7 @@ from social_network.views import user_profile
 from .views import change_username
 from .views import terms_of_service, privacy_policy
 from .views import delete_account_view
+from .views import like_comment
 
 
 
@@ -107,6 +108,9 @@ urlpatterns = [
     path('unblock_user/<str:username>/', views.unblock_user, name='unblock_user'),
 
     path('blocked-users/', views.blocked_users_list, name='blocked_users_list'),  # Add this line
+
+    path('like_comment/<int:comment_id>/', views.like_comment, name='like_comment'),
+
 
 
 ]

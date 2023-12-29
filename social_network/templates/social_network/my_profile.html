@@ -102,16 +102,16 @@
                             <button type="submit" class="btn btn-primary save-user-info">Save</button>
                         </div>
                         <div class="col-md-6">
-                            <div class="following-followers mt-4">
-                                <div class="followers">
-                                    <strong>Followers:</strong>
-                                    <a href="{% url 'followers' user.username %}">{{ user.followers.count }}</a>
-                                </div>
-                                <div class="following">
-                                    <strong>Following:</strong>
-                                    <a href="{% url 'followings' user.username %}">{{ user.following.count }}</a>
-                                </div>
+                            <div class="followers" style="margin-top: 15px;">
+                                <strong style="font-size: 18px; color: #333;">Followers:</strong>
+                                <span class="badge badge-primary" style="font-size: 16px;">{{ user.followers.count }}</span>
                             </div>
+                            
+                            <div class="following" style="margin-top: 10px;">
+                                <strong style="font-size: 18px; color: #333;">Following:</strong>
+                                <span class="badge badge-primary" style="font-size: 16px;">{{ user.following.count }}</span>
+                            </div>
+                            
                         </div>
                     </div>
 
@@ -178,11 +178,13 @@
                 </div>
                 <div class="card-body" style="background-color: rgb(251, 233, 233);">
                     <p class="card-text">{{ post.content }}</p>
-                    <p class="card-text">
-                        <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#commentsCollapse{{ post.id }}" aria-expanded="false" aria-controls="commentsCollapse{{ post.id }}">
-                            View Comments ({{ post.comments.count }})
-                        </button>
-                    </p>
+
+                    <a href="#commentsCollapse{{ post.id }}" data-toggle="collapse">
+                            <p class="card-text">
+                                <i class="fas fa-comments"></i>
+                                View Comments ({{ post.comments.count }})
+                            </p>
+                    </a>
                     
                     <div class="collapse" id="commentsCollapse{{ post.id }}">
                         <!-- Comment form for adding new comments -->
@@ -198,7 +200,7 @@
                         <!-- Display comments for the post -->
                         <ul class="list-unstyled">
                             {% for comment in post.comments.all %}
-                            <li class="media" style="background-color: rgb(172, 188, 194);">
+                            <li class="media" style="background-color: rgb(248, 250, 250);">
                                 {% if comment.user.profile_photo %}
                                     <img src="{{ comment.user.profile_photo.url }}" alt="{{ comment.user.username }} Profile Picture" class="profile-picture img-fluid rounded-circle mr-2" style="width: 40px; height: 40px; object-fit: cover;">
                                 {% endif %}
@@ -207,6 +209,18 @@
                                     <strong><a href="{% url 'user_profile' comment.user.username %}">@{{ comment.user }}</a></strong>
                                     <p>{{ comment.text }}</p>
                                     <small class="text-muted">{{ comment.created }}</small>
+                                    <!-- Like Comment Form -->
+                                    <form method="post" action="{% url 'like_comment' comment.id %}" style="display: inline;">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-link" >
+                                            {% if user in comment.likes.all %}
+                                                <i class="fas fa-thumbs-up" style="color: blue;"></i> Unlike
+                                            {% else %}
+                                                <i class="far fa-thumbs-up" style="color: blue;"></i> Like
+                                            {% endif %}
+                                        </button>
+                                        <span>{{ comment.likes.count }} likes</span>
+                                    </form>
                                     <!-- Add a "Delete" button for the comment -->
                                     {% if comment.user == user %}
                                     <form method="post" action="{% url 'delete_comment' comment.id %}">
