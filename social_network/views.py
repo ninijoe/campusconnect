@@ -36,7 +36,8 @@ from django.utils.safestring import mark_safe
 from .forms import ChangeEmailForm
 from django.contrib.auth.views import PasswordResetView
 from .forms import CustomPasswordResetForm  # Import your custom form if needed
-
+from django.contrib.auth.models import User  # Import the User model
+from .models import User
 
 
 @login_required
@@ -437,14 +438,20 @@ def display_posts(request):
     return render(request, 'social_network/my_profile.html', {'form': form, 'posts': posts})
 
 
+@login_required
 def discover(request):
-    # Retrieve all users
-    all_users = User.objects.all()
+    # Retrieve all users excluding the current user
+    all_users = User.objects.exclude(id=request.user.id)
 
     # Get the search query from the request
     search_query = request.GET.get('search', '')
 
-    # Apply filtering based on username, first_name, and last_name
+    # Exclude users who have blocked the current user and who are blocked by the current user
+    all_users = all_users.exclude(
+        Q(blocked_users=request.user) | Q(blocked_by_users=request.user)
+    )
+
+    # Apply additional filtering based on username, first_name, and last_name
     if search_query:
         all_users = all_users.filter(
             Q(username__icontains=search_query) |
@@ -455,27 +462,58 @@ def discover(request):
     # Render the template with the filtered queryset
     return render(request, 'social_network/discover.html', {'all_users': all_users})
 
+
 def settings(request):
     return render(request, 'social_network/settings.html')
 
 @csrf_exempt
 def login_view(request):
     if request.method == "POST":
-        # Attempt to sign the user in
         username = request.POST["username"]
         password = request.POST["password"]
+        remember_me = request.POST.get("remember_me")
+
         user = authenticate(request, username=username, password=password)
 
-        # Check if authentication was successful
         if user is not None:
             login(request, user)
+
+            # Set a longer session duration if "Remember Me" is checked
+            if remember_me:
+                request.session.set_expiry(1209600)  # 2 weeks in seconds
+
             return HttpResponseRedirect(reverse("index"))
         else:
             return render(request, "social_network/login.html", {
                 "message": "Invalid username and/or password."
             })
     else:
-        return render(request, "social_network/login.html", {'csrf_token': csrf.get_token(request)})
+        return render(request, "social_network/login.html")
+    
+
+@login_required
+def blocked_users_list(request):
+    blocked_users = request.user.blocked_users.all()
+    return render(request, 'social_network/blocked_users_list.html', {'blocked_users': blocked_users})
+
+
+@login_required
+def block_user(request, username):
+    user_to_block = get_object_or_404(User, username=username)
+
+    # Block the user (adjust this based on your actual implementation)
+    request.user.blocked_users.add(user_to_block)
+
+    # Redirect back to the discover page, excluding the blocked user
+    return redirect('discover')
+
+
+@login_required
+def unblock_user(request, username):
+    user_to_unblock = User.objects.get(username=username)
+    request.user.blocked_users.remove(user_to_unblock)
+    return redirect('settings')  # Redirect to settings after unblocking
+
 
 def logout_view(request):
     logout(request)

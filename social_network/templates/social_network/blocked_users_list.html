@@ -1,0 +1,33 @@
+<!-- blocked_users_list.html -->
+
+{% extends "social_network/layout.html" %}
+{% load static %}
+
+{% block main_content %}
+    <div class="container my-5">
+        <h2>Blocked Users</h2>
+        {% if blocked_users %}
+            <div class="row">
+                {% for blocked_user in blocked_users %}
+                    <div class="col-md-4 mb-3">
+                        <div class="card" style="border: 1.5px solid black;">
+                            <div class="card-img-top" style="height: 180px; overflow: hidden;">
+                                <img src="{% if blocked_user.profile_photo %}{{ blocked_user.profile_photo.url }}{% else %}{% static 'path_to_default_image.jpg' %}{% endif %}" alt="{{ blocked_user.username }} Profile Picture" style="width: 100%;">
+                            </div>
+                            <div class="card-body">
+                                <a href="{% url 'user_profile' blocked_user.username %}" style="font-weight: bold;">@{{ blocked_user.username }}</a>
+                                <p class="card-text" style="font-size: 0.8rem; font-weight: bold; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ blocked_user.first_name|title}} <span></span> {{blocked_user.last_name|title}}</p>
+                                <form method="post" action="{% url 'unblock_user' blocked_user.username %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-danger mt-3">Unblock</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p>No blocked users.</p>
+        {% endif %}
+    </div>
+{% endblock %}

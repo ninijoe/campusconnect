@@ -14,18 +14,27 @@
                             <i class="fas fa-user-circle fa-10x text-secondary" id="profile-photo-placeholder"></i>
                         {% endif %}
                     </div>
-                    <form method="post" action="{% url 'follow_user' %}">
-                        {% csrf_token %}
-                        <input type="hidden" name="user_to_follow" value="{{ user.id }}">
-                        {% if user != request.user %}
-                            {% if user in request.user.following.all %}
-                                <button type="submit" class="btn btn-danger mt-3">Unfollow</button><br>
-                                <div style="font-size: 10px; font-weight: 40px;">you follow this user</div>
-                            {% else %}
-                                <button type="submit" class="btn btn-primary mt-3">Follow</button>
+                    <div class="d-flex justify-content-center">
+                        <form method="post" action="{% url 'follow_user' %}" class="mr-3">
+                            {% csrf_token %}
+                            <input type="hidden" name="user_to_follow" value="{{ user.id }}">
+                            {% if user != request.user %}
+                                {% if user in request.user.following.all %}
+                                    <button type="submit" class="btn btn-danger mt-3">Unfollow</button><br>
+                                    <div style="font-size: 10px; font-weight: 40px;">you follow this user</div>
+                                {% else %}
+                                    <button type="submit" class="btn btn-primary mt-3">Follow</button>
+                                {% endif %}
                             {% endif %}
-                        {% endif %}
-                    </form>
+                        </form>
+                    
+                        <form method="post" action="{% url 'block_user' user.username %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger mt-3">Block</button>
+                        </form>
+                    </div>
+                    
+                    
                     <br>
                     <div class="followers">
                         <strong>Followers:</strong>
@@ -125,17 +134,7 @@
                             <span>{{ post.likes.count }}</span>
                         </form>
                         
-                        <form method="post" action="{% url 'dislike_post' post.id %}" style="display: inline;">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-link" >
-                                {% if user in post.dislikes.all %}
-                                    <i class="fas fa-thumbs-down" style="color: red;"></i> Dislike
-                                {% else %}
-                                    <i class="far fa-thumbs-down" style="color: red;"></i> Dislike
-                                {% endif %}
-                            </button>
-                            <span>{{ post.dislikes.count }}</span>
-                        </form>
+                        
                         
                         
                     </div>

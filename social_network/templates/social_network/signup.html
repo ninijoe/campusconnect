@@ -1,62 +1,41 @@
-{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>CampusConnect - Sign Up</title>
-    <link rel="stylesheet" type="text/css" href="{% static 'css/signup.css' %}">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-
 </head>
-<body>
+<body class="show-content" style="background-image: url('/static/images/campus.png'); background-size: cover; background-repeat: no-repeat; display: flex; justify-content: center; align-items: center; min-height: 100vh;">
 
     <div class="container">
-        <div class="row justify-content-center">
-            <div class="row-md-6">
-                {% if message %}
-                    <div class="alert alert-danger text-center" role="alert">
-                        {{ message }}
-                    </div>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-    
-    <div class="container">
-        <div class="left">
-            <img src="{% static 'images/img1.png' %}" alt="Image 1">
-        </div>
-        <div class="right">
-            <h1 style="font-size: 3rem; color: #f7f9fb; font-weight: bold; text-align: center; text-shadow: 6px 6px 6px rgba(0, 0, 0, 0.2);">CampusConnect</h1>
-
-            <p style="font-size: 1rem; color: black; font-weight: bold; text-align: center; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);">For VIU staff and students</p>
+        <div class="text-center">
+            <h1 class="display-3" style="color: #3498db; font-size: 5rem; font-weight: bold;">CampusConnect</h1>
+            <p class="lead" style="color: #f8fbf9; font-size: 2rem; font-weight: bold;">For VIU staff and students</p>
 
             <form action="{% url 'signup' %}" method="post" class="custom-form">
                 {% csrf_token %}
-                <h2>Sign Up</h2>
+                
                 <div class="form-group">
-                    <label for="username">Username:</label>
-                    <input class="form-control" autofocus type="text" id="username" name="username" placeholder="Username" required>
+                    
+                    <input class="form-control form-control-lg" autofocus type="text" id="username" name="username" placeholder="Username" required>
                 </div>
                 <div class="form-group">
-                    <label for="email">Email:</label>
-                    <input class="form-control" type="email" id="email" name="email" placeholder="Email Address" required>
+                    
+                    <input class="form-control form-control-lg" type="email" id="email" name="email" placeholder="Email Address" required>
                 </div>
                 <div class="form-group">
-                    <label for="password">Password:</label>
-                    <input class="form-control" type="password" id="password" name="password" placeholder="Password" required>
+                    
+                    <input class="form-control form-control-lg" type="password" id="password" name="password" placeholder="Password" required>
                 </div>
                 <div class="form-group">
-                    <label for="confirm_password">Confirm Password:</label>
-                    <input class="form-control" type="password" id="confirm_password" name="confirmation" placeholder="Confirm Password" required>
+                    
+                    <input class="form-control form-control-lg" type="password" id="confirm_password" name="confirmation" placeholder="Confirm Password" required>
                 </div>
-                <input class="btn btn-primary" type="submit" value="Sign Up">
+                <button class="btn btn-primary btn-lg btn-block" type="submit">Sign Up</button>
                 
                 <!-- Add "already have an account? login here" link -->
-                <p>Already have an account? <a href="{% url 'login' %}">Login here</a></p>
+                <p class="font-weight-bold" class="mt-1" style="color: aliceblue; font-size: 30px;">Already have an account? <a href="{% url 'login' %}" class="text-primary font-weight-bold">Login here</a></p>
             </form>
-            
-             
         </div>
     </div>
 </body>

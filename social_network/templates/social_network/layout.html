@@ -4,27 +4,29 @@
 <head>
     <meta charset="UTF-8">
     <title>{% block title %}CampusConnect{% endblock %}</title>
+    
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    
+    <!-- Font Awesome CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+    <!-- Your custom CSS files -->
     <link rel="stylesheet" type="text/css" href="{% static 'css/layout.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'css/my_profile.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'css/user_profile.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'css/index.css' %}">
-    <script src="{% static 'js/my_profile.js' %}"></script>
-    <!-- Include Bootstrap CSS (you may adjust the paths) -->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.min.js"></script>
+
+    <!-- Bootstrap JavaScript dependencies -->
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    <!-- Add this in the head of your HTML file -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.min.js"></script>
 
+    <!-- Your custom JavaScript files -->
+    <script src="{% static 'js/my_profile.js' %}"></script>
 
-    <!-- Add Bootstrap CSS link here -->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <!-- Add Font Awesome CSS link here -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Font Awesome -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
 </head>
 <body style="background-color: #b3b3b3; margin: 0; padding: 0;">
 
@@ -36,139 +38,81 @@
                             text-shadow: -1px -1px 0 black, 1px -1px 0 black, -1px 1px 0 black, 1px 1px 0 black;">
                     Welcome, @{{ request.user.username }}</h1>
             </div>
-            
+
             <div class="col-md-6 text-right">
                 <h1 style="font-weight: bold; font-size: 30px;  color: rgb(252, 250, 250); margin-top: 10px;
                             text-shadow: -1px -1px 0 black, 1px -1px 0 black, -1px 1px 0 black, 1px 1px 0 black;">
                     CampusConnect</h1>
             </div>
         </div>
-        
     </div>
     
-    <div class="navbar" style="background-color: rgb(25, 23, 23); width: 190px; position: absolute; top: 63px; bottom: 0; left: 0; text-align: left;">
-        <div class="nav-item">
-            <a href="{% url 'my_profile' %}" class="nav-link {% if request.path == '/my_profile/' %}active{% endif %}">
-                <i class="fas fa-user"></i>
-                My Profile
-            </a>
+    <!-- Horizontal navigation bar -->
+    <nav class="navbar navbar-expand-md navbar-dark bg-dark">
+        <div class="container-fluid">
+            <div class="navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ml-auto">
+                    <!-- Add your navigation links here -->
+                    <li class="nav-item">
+                        <a href="{% url 'my_profile' %}" class="nav-link {% if request.path == '/my_profile/' %}active{% endif %}">
+                            <i class="fas fa-user"></i> My Profile
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url 'index' %}" class="nav-link {% if request.path == '/index/' %}active{% endif %}">
+                            <i class="fas fa-home"></i> Home
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url 'discover' %}" class="nav-link {% if request.path == '/discover/' %}active{% endif %}">
+                            <i class="fas fa-compass"></i> Discover
+                        </a>
+                    </li>
+                    <!-- Notifications Link -->
+                    <li class="nav-item">
+                        <a href="{% url 'notifications' %}" class="nav-link {% if request.path == '/notifications/' %}active{% endif %}" id="notifications-link">
+                            <i class="fas fa-bell"></i> Notifications
+                            {% if unseen_notification_count > 0 %}
+                                <span id="notifications-badge" class="badge badge-pill badge-danger">{{ unseen_notification_count }}</span>
+                            {% endif %}
+                        </a>
+                    </li>
+                    
+                    <!-- Settings Link -->
+                    <li class="nav-item">
+                        <a href="{% url 'settings' %}" class="nav-link {% if request.path == '/settings/' %}active{% endif %}">
+                            <i class="fas fa-cog"></i> Settings
+                        </a>
+                    </li>
+                    <!-- Add more navigation links as needed -->
+                </ul>
+            </div>
         </div>
-        <div class="nav-item">
-            <a href="{% url 'index' %}" class="nav-link {% if request.path == '/index/' %}active{% endif %}">
-                <i class="fas fa-home"></i>
-                Home
-            </a>
-        </div>
-        <div class="nav-item">
-            <a href="{% url 'discover' %}" class="nav-link {% if request.path == '/discover/' %}active{% endif %}">
-                <i class="fas fa-compass"></i>
-                Discover
-            </a>
-        </div>
-        <!-- Include this in your template where the navbar is located -->
-        <div class="nav-item">
-            <a href="{% url 'notifications' %}" class="nav-link {% if request.path == '/notifications/' %}active{% endif %}" id="notifications-link">
-                <i class="fas fa-bell"></i>
-                Notifications
-                {% if unseen_notification_count > 0 %}
-                    <span id="notifications-badge" class="badge badge-pill badge-danger">{{ unseen_notification_count }}</span>
-                {% endif %}
-            </a>
-        </div>
+    </nav>
 
-        
-            
-        <div class="nav-item">
-            <a href="{% url 'settings' %}" class="nav-link {% if request.path == '/settings/' %}active{% endif %}">
-                <i class="fas fa-cog"></i>
-                Settings
-            </a>
-        </div>
-        
-       
-        <div class="nav-item mt-auto">
-            <p style="font-size: 12px; color: white;">&copy; 2023 CampusConnect</p>
-        </div>
-    </div>
-    
-   
-    <div class="content" style="background-color: rgb(251, 245, 245); width: 800px; position: absolute; top: 95px; left: 17%; bottom: 0; overflow: hidden;">
+    <!-- Your content area -->
+    <div class="content" style="background-color: rgb(251, 245, 245); width: 780px; position: absolute; top: 109px; left: 0%; bottom: 0; overflow: hidden;">
+        <!-- Content navbar -->
         <div class="content-navbar" style="background-color: #c5d1dd; color: white; padding: 10px; height: 2.5rem; border: 1px solid black; font-weight: bold;">
             <div class="content-text" style="color: rgb(25, 23, 23);">
-                {% if request.resolver_match.url_name == 'my_profile' %}
-                    My Profile
-                {% elif request.resolver_match.url_name == 'index' %}
-                    Home
-                {% elif request.resolver_match.url_name == 'discover' %}
-                    Discover
-                {% elif request.resolver_match.url_name == 'settings' %}
-                    Settings
-                {% elif request.resolver_match.url_name == 'user_profile' %}
-                    User Profile
-                {% elif request.resolver_match.url_name == 'notifications' %}
-                    Notifications
-                {% elif request.resolver_match.url_name == 'change_email' %}
-                    Change Email
-                {% elif request.resolver_match.url_name == 'change_password' %}
-                    Change Password
-                {% elif request.resolver_match.url_name == 'change_username_view' %}
-                    Change Username
-                {% elif request.resolver_match.url_name == 'delete_account' %}
-                    Delete Account
-                {% elif request.resolver_match.url_name == 'terms_of_service' %}
-                    Terms of Service
-                {% elif request.resolver_match.url_name == 'privacy_policy' %}
-                    Privacy Policy
-                {% endif %}
+                {% block content_title %}
+                    <!-- Add content title here -->
+                {% endblock %}
             </div>
-            
         </div>
         
-        <!-- Add your content here -->
-        <!-- Add your content here -->
+        <!-- Main content -->
         <div class="main-content" style="overflow-y: auto; height: calc(100% - 2.5rem); padding: 20px; margin: 10px;">
             {% block main_content %}
-                
-                {% if show_content %} 
-                    <h1>Welcome to CampusConnect @{{ user.username }}- Your Campus Social Network!</h1>
-
-                    <p>CampusConnect is an online social directory for discovering staff and students and VIU </p>
-                    <h2>Why CampusConnect?</h2>
-
-                    <p>Campus life can be exciting and diverse, but it can also be challenging to navigate, especially for new students. CampusConnect aims to bridge this gap by providing a platform that brings students together, fostering connections, and making it easier for them to:</p>
-
-                    <ul>
-                        <li><strong>Connect:</strong> Meet and connect with fellow students who share similar interests, courses, or activities.</li>
-
-                        <li><strong>Share Information:</strong> Share important information, updates, and resources related to campus events, clubs, and organizations.</li>
-
-                        <li><strong>Discover New Things:</strong> Explore and discover new opportunities, events, and experiences happening on campus.</li>
-                    </ul>
-
-                    <h2>Navigating CampusConnect</h2>
-
-                    <p>Navigating CampusConnect is simple and intuitive. Here's a quick guide to get you started:</p>
-
-                    <ul>
-                        <li><strong>My Profile:</strong> Click on "My Profile" to access and edit your personal profile information. You can also view your posts and interactions here.</li>
-
-                        <li><strong>Home:</strong> The "Home" page is your central hub for campus-related updates and posts. You can browse recent posts, events, and announcements from your fellow students.</li>
-
-                        <li><strong>Discover:</strong> Click on "Discover" to explore and discover new Users, clubs, events, and opportunities available on campus.</li>
-
-                        <li><strong>Settings:</strong> Access your account settings by clicking on "Settings." Here, you can manage your account preferences and notification settings.</li>
-                    </ul>
-
-                    <!-- Continue with the rest of your content -->
-
-                {% endif %}
+                <!-- Add your main content here -->
+                <p>Your main content goes here.</p>
             {% endblock %}
         </div>
-
     </div>
 
-    <!-- Sponsored ads with a black border -->
-    <div class="sponsored-ads" style="background-color: rgb(235, 214, 214); text-align: center; width: 200px; position: absolute; top: 95px; left: 82%; bottom: 35px; border: 1.5px solid black; padding: 10px;">
+    <!-- Sponsored ads with a black border-->
+    <div class="sponsored-ads" style="background-color: rgb(235, 214, 214); text-align: center; width: 200px; position: absolute; top: 109px; left: 80%; bottom: 0px; border: 1.5px solid black; padding: 10px;">
+        <!-- Add sponsored ads content here -->
         <div style="margin: 0 auto; max-width: 150px; margin-left: 10px; font-weight: bold;">
             <h4>NEWS</h4>
             <p style="font-size: 12px; margin: 0;">Welcome to CampusConnect. You are using the beta version of this site, meaning there are plenty more improvements to come.  <br> </p>
@@ -182,35 +126,33 @@
         <br><br>
         <p style="font-size: 12px;">A Joseph Ephraim Production</p>
         <ul style="list-style: none; padding-left: 0; ">
-            
             <li style="font-size: 10px; margin: 0;"><a href="mailto:josephephraim68@yahoo.com">josephephraim68@yahoo.com</a></li>
         </ul>
     </div>
 
-    
-    
-</body>
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        // Get the notifications link and badge
-        const notificationsLink = document.getElementById('notifications-link');
-        const notificationsBadge = document.getElementById('notifications-badge');
-    
-        // Check if there are unread notifications
-        const unreadCount = parseInt('{{ unread_count }}');  // You need to pass the unread count from your backend
-    
-        // Update the badge content
-        if (unreadCount > 0) {
-            notificationsBadge.innerText = unreadCount;
-            notificationsBadge.style.display = 'inline-block';  // Show the badge
-        } else {
-            notificationsBadge.style.display = 'none';  // Hide the badge
-        }
-    
-        // Add a click event listener to hide the badge when the notifications link is clicked
-        notificationsLink.addEventListener('click', function () {
-            notificationsBadge.style.display = 'none';  // Hide the badge
+    <!-- Add your JavaScript for notifications here -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Get the notifications link and badge
+            const notificationsLink = document.getElementById('notifications-link');
+            const notificationsBadge = document.getElementById('notifications-badge');
+        
+            // Check if there are unread notifications
+            const unreadCount = parseInt('{{ unread_count }}');  // You need to pass the unread count from your backend
+        
+            // Update the badge content
+            if (unreadCount > 0) {
+                notificationsBadge.innerText = unreadCount;
+                notificationsBadge.style.display = 'inline-block';  // Show the badge
+            } else {
+                notificationsBadge.style.display = 'none';  // Hide the badge
+            }
+        
+            // Add a click event listener to hide the badge when the notifications link is clicked
+            notificationsLink.addEventListener('click', function () {
+                notificationsBadge.style.display = 'none';  // Hide the badge
+            });
         });
-    });
     </script>
+</body>
 </html>

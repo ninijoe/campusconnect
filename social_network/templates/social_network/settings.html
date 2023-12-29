@@ -1,61 +1,62 @@
 {% extends "social_network/layout.html" %}
+{% load static %}
 
 {% block main_content %}
     <div class="container my-5">
-        <!-- Your existing content goes here -->
-
         <table class="table border-0">
             <tbody>
+                
                 <tr>
                     <td>
-                        <!-- Add this script in the head section of your HTML file, or include it in a separate JS file -->
-                        <script>
-                            // Function to show the confirmation popup
-                            function showLogoutConfirmation() {
-                                var isConfirmed = confirm("Are you sure you want to logout?");
-                                if (isConfirmed) {
-                                    // If user clicks "OK," redirect to the logout URL
-                                    window.location.href = "{% url 'logout_view' %}";
-                                }
-                                // If user clicks "Cancel," do nothing
-                            }
-                        </script>
-
-                        <!-- Add this to your HTML where the logout link is -->
-                        <a href="javascript:void(0);" class="btn btn-outline-danger btn-block" onclick="showLogoutConfirmation()">
-                            <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                        <a href="javascript:void(0);" class="btn btn-outline-dark" onclick="showLogoutConfirmation()">
+                            <i class="fas fa-sign-out-alt mr-2"></i>Logout User
                         </a>
+                        
                     </td>
 
                     <td>
-                        <a href="{% url 'change_username_view' %}" class="btn btn-outline-primary btn-block">
+                        <a href="{% url 'change_username_view' %}" class="btn btn-outline-dark">
                             <i class="fas fa-user-edit mr-2"></i>Change Username
                         </a>
                     </td>
 
                     <td>
-                        <a href="{% url 'change_email' %}" class="btn btn-outline-primary btn-block">
+                        <a href="{% url 'change_email' %}" class="btn btn-outline-dark">
                             <i class="far fa-envelope mr-2"></i>Change Email
                         </a>
                     </td>
 
                     <td>
-                        <a href="{% url 'change_password' %}" class="btn btn-outline-success btn-block">
+                        <a href="{% url 'change_password' %}" class="btn btn-outline-dark">
                             <i class="fas fa-key mr-2"></i>Change Password
                         </a>
                     </td>
 
                     <td>
-                        <!-- Delete Account Button with Confirmation -->
-                        <a href="{% url 'delete_account' %}" class="btn btn-outline-danger btn-block" id="deleteAccountBtn">
+                        <a href="{% url 'blocked_users_list' %}" class="btn btn-outline-dark">
+                            <i class="fas fa-ban mr-2"></i>Blocked Users
+                        </a>
+                    </td>
+
+                    <td>
+                        <a href="{% url 'delete_account' %}" class="btn btn-outline-dark" id="deleteAccountBtn">
                             <i class="far fa-trash-alt mr-2"></i>Delete Account
                         </a>
                     </td>
+                    
                 </tr>
             </tbody>
         </table>
     </div>
 
+<script>
+    function showLogoutConfirmation() {
+        // Implement your logout confirmation logic here
+        // You can use window.location.href to redirect to the logout URL
+        window.location.href = '{% url "logout_view" %}';
+    }
+</script>
+    
 {% endblock %}
 
 {% block nav_home_active %}

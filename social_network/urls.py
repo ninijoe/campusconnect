@@ -23,6 +23,8 @@ if settings.DEBUG:
 
 urlpatterns = [
 
+    
+
     # URL for the signup view
     path("", views.signup, name="signup"),
 
@@ -100,7 +102,11 @@ urlpatterns = [
 
     path('change_password/', views.change_password, name='change_password'),
 
-    
+    path('block_user/<str:username>/', views.block_user, name='block_user'),
+
+    path('unblock_user/<str:username>/', views.unblock_user, name='unblock_user'),
+
+    path('blocked-users/', views.blocked_users_list, name='blocked_users_list'),  # Add this line
 
 
 ]

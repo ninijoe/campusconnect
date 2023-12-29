@@ -34,6 +34,7 @@ class User(AbstractUser):
     year_of_study = models.CharField(max_length=10, null=True, blank=True)
     bio = models.TextField(blank=True)
     following = models.ManyToManyField('self', blank=True, symmetrical=False, related_name='followers')
+    blocked_users = models.ManyToManyField('self', blank=True, symmetrical=False, related_name='blocked_by_users')
 
     
 
