@@ -1,0 +1,22 @@
+<!-- templates/message_detail.html -->
+{% extends "social_network/layout.html" %}
+
+{% load static %}
+
+{% block main_content %}
+    <h1>Conversation with {{ other_user.username }}</h1>
+    <div>
+        {% for sender, content, timestamp in messages %}
+            <div>
+                <strong>{{ sender.username }}:</strong> {{ content }}
+                <small>{{ timestamp }}</small>
+            </div>
+        {% endfor %}
+    </div>
+
+    <form method="post" action="{% url 'send_message' other_user.username %}">
+        {% csrf_token %}
+        <textarea name="content" placeholder="Type your message"></textarea>
+        <button type="submit">Send</button>
+    </form>
+{% endblock %}

@@ -27,7 +27,17 @@
                     </div>
                     <div class="card-body">
                         <a href="{% url 'user_profile' user.username %}" style="font-weight: bold;">@{{ user.username }}</a>
-                        <p class="card-text" style="font-size: 0.8rem; font-weight: bold; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ user.first_name|title}} <span></span> {{user.last_name|title}}</p>
+                        <form method="post" action="{% url 'follow_user' %}" class="mr-3">
+                            {% csrf_token %}
+                            <input type="hidden" name="user_to_follow" value="{{ user.id }}">
+                            {% if user != request.user %}
+                                {% if user in request.user.following.all %}
+                                    <button type="submit" class="btn btn-danger mt-3">Unfollow</button><br>
+                                {% else %}
+                                    <button type="submit" class="btn btn-primary mt-3">Follow</button>
+                                {% endif %}
+                            {% endif %}
+                        </form>
                     </div>
                 </div>
             </div>

@@ -2,30 +2,84 @@
 {% load static %}
 
 {% block main_content %}
-<div class="content" style="background: linear-gradient(to bottom, rgb(251, 245, 245), rgb(240, 230, 230), rgb(230, 220, 220), rgb(220, 210, 210)); width: 100%; position: absolute; top: 60px; left: 10%; bottom: 0; overflow-y: auto;">
-   
-    <ul class="list-group">
-        {% for mention in mentions %}
-            {% if request.user.username in mention.post.content or mention.comment and request.user.username in mention.comment.content %}
-                <li class="list-group-item" style="width: 75%;">
+<div class="content" style=" margin-top: 5%; background: linear-gradient(to bottom, rgb(251, 245, 245), rgb(240, 230, 230), rgb(230, 220, 220), rgb(220, 210, 210)); width: 100%; position: absolute; top: 60px; margin-left: 5%; bottom: 0; overflow-y: auto;">
+
+    <!-- Post Mentions Section -->
+    <div class="mb-4">
+        
+        <ul class="list-group">
+            {% for mention in post_mentions %}
+                <li class="list-group-item" style="width: 80%;">
                     <div class="d-flex align-items-center">
                         <img src="{% if mention.user.profile_photo %}{{ mention.user.profile_photo.url }}{% else %}{% static 'path_to_default_image.jpg' %}{% endif %}" alt="{{ mention.user.username }} Profile Photo" class="rounded-circle mr-2" style="width: 40px; height: 40px; object-fit: cover;">
                         <span class="font-weight-bold">
                             <a href="{% url 'user_profile' mention.user.username %}">@{{ mention.user.username }}</a>
                         </span>
                     </div>
-                    {% if mention.post %}
-                        mentioned you in a post:
-                        <p class="mb-0">{{ mention.post.content }}</p>
-                    {% elif mention.comment %}
-                        mentioned you in a comment:
-                        <p class="mb-0">{{ mention.comment.content }}</p>
-                    {% endif %}
+                    <p class="mb-0">Mentioned you in a post:</p>
+                    <p class="mb-0">{{ mention.post.content }}</p>
                     <small class="text-muted">Time: {{ mention.created | date:"F j, Y, g:i a" }}</small>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <!-- Comment Mentions Section -->
+    <div>
+        
+        <ul class="list-group">
+            {% for mention in comment_mentions %}
+                <li class="list-group-item" style="width: 80%;">
+                    <div class="d-flex align-items-center">
+                        <img src="{% if mention.comment.user.profile_photo %}{{ mention.comment.user.profile_photo.url }}{% else %}{% static 'path_to_default_image.jpg' %}{% endif %}" alt="{{ mention.comment.user.username }} Profile Photo" class="rounded-circle mr-2" style="width: 40px; height: 40px; object-fit: cover;">
+                        <span class="font-weight-bold">
+                            <a href="{% url 'user_profile' mention.comment.user.username %}">@{{ mention.comment.user.username }}</a>
+                        </span>
+                    </div>
+                    <p class="mb-0">Mentioned you in a comment:</p>
+                    <p class="mb-0">{{ mention.comment.text }}</p>
+                    <small class="text-muted">Time: {{ mention.created | date:"F j, Y, g:i a" }}</small>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+    <br>
+    <div>
+        {% for like in user_post_likes %}
+            {% if like.liked_users_username and like.liked_users_username != request.user.username %}
+                <li class="list-group-item" style="width: 80%;">
+                    <div class="d-flex align-items-center">
+                        <img src="{% if like.liked_users_profile_photo %}{{ like.liked_users_profile_photo.url }}{% else %}{% static 'path_to_default_image.jpg' %}{% endif %}" alt="{{ like.liked_users_username }} Profile Photo" class="rounded-circle mr-2" style="width: 40px; height: 40px; object-fit: cover;">
+                        <span class="font-weight-bold">
+                            <a href="{% url 'user_profile' like.liked_users_username %}">@{{ like.liked_users_username }}</a>
+                        </span>
+                    </div>
+                    <p class="mb-0">Liked a post by you</p>
+                    <p class="mb-0">{{ post.content }}</p>
+                    <small class="text-muted">Time: {{ like.liked_users_created | date:"F j, Y, g:i a" }}</small>
+                </li>
+                <br>
+            {% endif %}
+        {% endfor %}
+        <br>
+        {% for like in user_comment_likes %}
+            {% if like.liked_users_username and like.liked_users_username != request.user.username %}
+                <li class="list-group-item" style="width: 80%;">
+                    <div class="d-flex align-items-center">
+                        <img src="{% if like.liked_users_profile_photo %}{{ like.liked_users_profile_photo.url }}{% else %}{% static 'path_to_default_image.jpg' %}{% endif %}" alt="{{ like.liked_users_username }} Profile Photo" class="rounded-circle mr-2" style="width: 40px; height: 40px; object-fit: cover;">
+                        <span class="font-weight-bold">
+                            <a href="{% url 'user_profile' like.liked_users_username %}">@{{ like.liked_users_username }}</a>
+                        </span>
+                    </div>
+                    <p class="mb-0">Liked a comment by you</p>
+                    <p class="mb-0">{{ like.comment.text }}</p>
+                    <small class="text-muted">Time: {{ like.liked_users_created | date:"F j, Y, g:i a" }}</small>
                 </li>
             {% endif %}
         {% endfor %}
-    </ul>
-    
+        
+    </div>
+    <br>
+
 </div>
 {% endblock %}

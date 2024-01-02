@@ -14,6 +14,7 @@ from django.contrib.auth import get_user_model
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
 import datetime
+from django.db.models import Count
 import logging
 from .forms import ChangeUsernameForm
 from django.contrib.auth.views import PasswordChangeView
@@ -23,7 +24,7 @@ from django.db.models import Q
 import random
 from django.contrib.auth.models import User
 from django.http import Http404
-from .models import Post , Comment , Mention
+from .models import Post , Comment , Mention, Message, ResharedPost
 from .forms import PostForm , FollowForm , CommentForm
 from django.db.models import F
 from django.contrib import messages
@@ -38,6 +39,8 @@ from django.contrib.auth.views import PasswordResetView
 from .forms import CustomPasswordResetForm  # Import your custom form if needed
 from django.contrib.auth.models import User  # Import the User model
 from .models import User
+from itertools import chain
+from operator import attrgetter
 
 
 @login_required
@@ -56,15 +59,80 @@ def change_email(request):
     return render(request, 'social_network/change_email.html', {'form': form,})
 
 
+
+
+
+@login_required
+def messages(request):
+    conversations = set()
+    messages = Message.objects.filter(recipient=request.user).order_by('-timestamp')
+    for message in messages:
+        conversations.add(message.conversation_id)
+    return render(request, 'social_network/messages.html', {'conversations': conversations})
+
+
+@login_required
+def message_detail(request, username):
+    recipient = get_object_or_404(User, username=username)
+    conversation_id = f"{request.user.id}-{recipient.id}"
+    messages = Message.objects.filter(conversation_id=conversation_id).order_by('timestamp')
+
+    decrypted_messages = []
+    for message in messages:
+        decrypted_content = message.get_decrypted_content()
+        decrypted_messages.append((message.sender, decrypted_content, message.timestamp))
+
+    return render(request, 'social_network/message_detail.html', {'recipient': recipient, 'messages': decrypted_messages})
+
+@login_required
+def send_message(request, username):
+    if request.method == 'POST':
+        content = request.POST.get('content')
+        recipient = get_object_or_404(User, username=username)
+
+        # Check if the recipient is blocked
+        if recipient in request.user.blocked_users.all():
+            messages.error(request, 'Unable to send a message to a blocked user.')
+            return redirect('messages')
+
+        # Check if a conversation already exists
+        conversation_id = f"{request.user.id}-{recipient.id}"
+        existing_messages = Message.objects.filter(conversation_id=conversation_id)
+
+        if existing_messages.exists():
+            # Conversation already exists, add the new message
+            new_message = Message(
+                sender=request.user,
+                recipient=recipient,
+                content=content,
+                conversation_id=conversation_id,
+            )
+            new_message.save()
+            return redirect('message_detail', username=recipient.username)
+        else:
+            # Conversation doesn't exist, create a new one
+            new_message = Message(
+                sender=request.user,
+                recipient=recipient,
+                content=content,
+                conversation_id=conversation_id,
+            )
+            new_message.save()
+            return redirect('message_detail', username=recipient.username)
+
+    # Handle other cases or provide a default response
+    return HttpResponse("Invalid request")
+
+
+
+
 @login_required
 def index(request):
     # Check if the user has clicked on the "Home" link
     home_link_clicked = request.session.pop('home_link_clicked', False)
 
-    # Get the posts by the user and the users they follow
-    user = request.user
-    following = user.following.all()
-    posts = Post.objects.filter(Q(author=user) | Q(author__in=following)).order_by('-created')
+    # Use display_index_posts to get the posts
+    posts = display_index_posts(request)
     form = PostForm()  # Include the form for creating a new post
 
     if request.method == "POST":
@@ -77,8 +145,10 @@ def index(request):
 
                 # After signup, don't show signup content
                 return redirect('index')
-        
-    return render(request, 'social_network/index.html', {'form': form, 'home_link_clicked': home_link_clicked, 'posts': posts})
+
+    # Pass the correct context to render
+    context = {'form': form, 'home_link_clicked': home_link_clicked, 'posts': posts}
+    return render(request, 'social_network/index.html', context)
 
 
 
@@ -139,10 +209,19 @@ def my_profile(request):
     following_count = request.user.following.count()
     followers_count = request.user.followers.count()
 
+    # Pass the user object to the template
     return render(request, 'social_network/my_profile.html', {
+        'user': request.user,  # Include the user object in the context
         'following_count': following_count,
         'followers_count': followers_count,
     })
+
+
+
+
+
+
+
 
 @login_required
 def user_profile(request, username):
@@ -152,6 +231,12 @@ def user_profile(request, username):
         raise Http404("User does not exist.")
 
     return render(request, 'social_network/user_profile.html', {'user': user})
+
+
+
+
+
+
 
 
 @login_required
@@ -173,6 +258,12 @@ def like_comment(request, comment_id):
 
     # Handle other cases or return an error response if needed
     return HttpResponseServerError("Invalid request.")
+
+
+
+
+
+
 
 
 @login_required(login_url='login')
@@ -200,6 +291,12 @@ def create_comment(request, post_id):
     # Handle other cases or return an error response if needed
     return HttpResponseServerError("Invalid request.")
 
+
+
+
+
+
+
 @login_required
 def delete_comment(request, comment_id):
     try:
@@ -222,6 +319,13 @@ def delete_comment(request, comment_id):
 
     # Handle other cases or return an error response if needed
     return HttpResponseServerError("Invalid request.")
+
+
+
+
+
+
+
 
 @login_required
 def follow_user(request):
@@ -257,6 +361,12 @@ def follow_user(request):
     # Handle other cases or errors here if needed
     raise Http404("Invalid request")
 
+
+
+
+
+
+
 @login_required
 def update_profile_photo(request):
     if request.method == 'POST':
@@ -271,7 +381,7 @@ def update_profile_photo(request):
                 user.profile_photo = profile_photo
                 user.save()
 
-                messages.success(request, "Profile photo updated successfully.")
+                
                 return redirect("my_profile")
             else:
                 messages.error(request, "No profile photo provided.")
@@ -281,6 +391,13 @@ def update_profile_photo(request):
 
     # Redirect back to the profile page even on error
     return redirect("my_profile")
+
+
+
+
+
+
+
 
 @login_required
 def remove_profile_photo(request):
@@ -293,13 +410,21 @@ def remove_profile_photo(request):
     messages.success(request, "Profile photo removed successfully.")
     return redirect("my_profile")
 
+
+
+
+
+
+
+
+
 @login_required(login_url='login')
 def delete_post(request, post_id):
     try:
         post = Post.objects.get(id=post_id)
         if post.author == request.user:
             post.delete()
-            messages.success(request, 'Post successfully deleted')
+            
         else:
             messages.error(request, 'Post deletion unsuccessful. You do not have permission to delete this post.')
 
@@ -313,6 +438,12 @@ def delete_post(request, post_id):
             return redirect('my_profile')  # Change 'my_profile' to the appropriate URL name
     except Post.DoesNotExist:
         raise Http404("Post does not exist.")
+
+
+
+
+
+
 
 @login_required
 def update_profile(request):
@@ -356,6 +487,13 @@ def update_profile(request):
     # Handle other cases or return an error response if needed
     return HttpResponseServerError("Invalid request.")
 
+
+
+
+
+
+
+
 @login_required
 def update_bio(request):
     if request.method == 'POST':
@@ -372,7 +510,7 @@ def update_bio(request):
             # Save the updated user object
             user.save()
 
-            messages.success(request, "Bio updated successfully.")
+            
             return redirect("my_profile")
 
         except User.DoesNotExist:
@@ -380,6 +518,13 @@ def update_bio(request):
 
     # Handle other cases or return an error response if needed
     return HttpResponseServerError("Invalid request.")
+
+
+
+
+
+
+
 
 @login_required(login_url='login')
 def create_post(request):
@@ -400,9 +545,7 @@ def create_post(request):
                 Mention.objects.create(post=post, user=user)
 
 
-            messages.success(request, 'Post successfully created')
-        else:
-            messages.error(request, 'Post creation unsuccessful')
+        
 
     # Check the Referer header to determine the previous page
     referer = request.META.get('HTTP_REFERER')
@@ -412,6 +555,13 @@ def create_post(request):
     else:
         # If no referer is provided, redirect to a default page (e.g., index)
         return redirect('index')  # Change 'index' to the appropriate URL name
+
+
+
+
+
+
+
 
 
 def change_password(request):
@@ -441,23 +591,182 @@ def change_password(request):
 
 
 
-@login_required(login_url='login')
-def display_posts(request):
-    user = request.user
 
-    if request.method == "POST":
-        form = PostForm(request.POST, request.FILES)
-        if form.is_valid():
-            post = form.save(commit=False)
-            post.author = user
-            post.save()
-            return redirect('display_posts')
 
-    else:
-        form = PostForm()
 
-    posts = Post.objects.filter(author=user).order_by('-created')
-    return render(request, 'social_network/my_profile.html', {'form': form, 'posts': posts})
+
+
+
+
+
+
+@login_required
+def display_index_posts(request):
+    # Get the user's posts
+    user_posts = Post.objects.filter(author=request.user)
+
+    # Get the posts from user's followings
+    following_posts = Post.objects.filter(author__in=request.user.following.all())
+
+    # Get the reshared posts by user and user's followings
+    reshared_posts = ResharedPost.objects.filter(Q(user=request.user) | Q(user__in=request.user.following.all()))
+
+    # Combine user's posts and reshared posts
+    combined_posts = []
+
+    for reshared in reshared_posts:
+        # Mark reshared posts
+        reshared.original_post.is_reshared = True
+        reshared.original_post.reshared_by = reshared.user  # Add the resharing user information
+        combined_posts.append(reshared.original_post)
+
+    for post in chain(user_posts, following_posts):
+        # Mark original posts
+        post.is_reshared = False
+        combined_posts.append(post)
+
+    # Order the posts by the created timestamp in descending order
+    all_posts = sorted(combined_posts, key=lambda post: post.created, reverse=True)
+
+    return all_posts
+
+    
+
+
+
+
+
+@login_required
+def reshare_index_post(request, post_id):
+    post_to_reshare = get_object_or_404(Post, id=post_id)
+
+    if ResharedPost.objects.filter(user=request.user, original_post=post_to_reshare).exists():
+        return redirect('index')
+
+    ResharedPost.objects.create(user=request.user, original_post=post_to_reshare)
+    post_to_reshare.mark_as_reshared()
+    post_to_reshare.increase_reshare_count()
+
+    return redirect('index')
+
+
+
+
+
+
+@login_required
+def display_my_profile_posts(request):
+    # Get the user's posts
+    user_posts = Post.objects.filter(author=request.user)
+
+    # Get the reshared posts by the user
+    reshared_posts = ResharedPost.objects.filter(user=request.user)
+
+    # Combine user's posts and reshared posts
+    combined_posts = []
+
+    for reshared in reshared_posts:
+        # Mark reshared posts
+        reshared.original_post.is_reshared = True
+        reshared.original_post.reshared_by = reshared.user  # Add the resharing user information
+        combined_posts.append(reshared.original_post)
+
+    for post in chain(user_posts):
+        # Mark original posts
+        post.is_reshared = False
+        combined_posts.append(post)
+
+    # Order the posts by the created timestamp in descending order
+    all_posts = sorted(combined_posts, key=lambda post: post.created, reverse=True)
+
+    context = {'posts': all_posts}
+    return render(request, 'social_network/my_profile.html', context)
+
+
+
+
+
+@login_required
+def display_user_profile_posts(request, username):
+    # Get the user whose profile is being viewed
+    user_profile = get_object_or_404(User, username=username)
+
+    # Get the user's original posts
+    user_posts = Post.objects.filter(author=user_profile)
+
+    
+
+    # Get the reshared posts by the user
+    reshared_posts = ResharedPost.objects.filter(user=user_profile)
+
+    
+
+    # Combine user's original posts and reshared posts
+    combined_posts = list(user_posts)
+
+    for reshared in reshared_posts:
+        # Mark reshared posts
+        reshared.original_post.is_reshared = True
+        reshared.original_post.reshared_by = reshared.user  # Add the resharing user information
+        combined_posts.append(reshared.original_post)
+
+    
+
+    # Order the posts by the created timestamp in descending order
+    all_posts = sorted(combined_posts, key=lambda post: post.created, reverse=True)
+
+    context = {'posts': all_posts, 'user_profile': user_profile}
+    return context
+
+
+
+
+@login_required
+def user_posts(request, username):
+    # Call the display_user_profile_posts function to get the context
+    context = display_user_profile_posts(request, username)
+
+    # Render the user_profile.html template using the context
+    return render(request, 'social_network/user_profile.html', context)
+
+
+
+
+
+@login_required
+def user_profile(request, username):
+    # Call the display_user_profile_posts function to get the context
+    posts_context = display_user_profile_posts(request, username)
+
+    # Get the user separately
+    user = get_object_or_404(User, username=username)
+
+    # Merge the user data with the posts context
+    context = {'user': user, **posts_context}
+
+    # Render the user_profile.html template using the combined context
+    return render(request, 'social_network/user_profile.html', context)
+
+
+
+
+
+@login_required
+def reshare_user_profile_post(request, post_id):
+    post_to_reshare = get_object_or_404(Post, id=post_id)
+
+    if ResharedPost.objects.filter(user=request.user, original_post=post_to_reshare).exists():
+        # Redirect to the user_profile with the appropriate username
+        return redirect(reverse('user_profile', args=[request.user.username]))
+
+    ResharedPost.objects.create(user=request.user, original_post=post_to_reshare)
+    post_to_reshare.mark_as_reshared()
+    post_to_reshare.increase_reshare_count()
+
+    # Redirect to the user_profile with the appropriate username
+    return redirect(reverse('user_profile', args=[request.user.username]))
+
+
 
 
 @login_required
@@ -485,8 +794,20 @@ def discover(request):
     return render(request, 'social_network/discover.html', {'all_users': all_users})
 
 
+
+
+
+
+
 def settings(request):
     return render(request, 'social_network/settings.html')
+
+
+
+
+
+
+
 
 @csrf_exempt
 def login_view(request):
@@ -513,10 +834,19 @@ def login_view(request):
         return render(request, "social_network/login.html")
     
 
+
+
+
+
 @login_required
 def blocked_users_list(request):
     blocked_users = request.user.blocked_users.all()
     return render(request, 'social_network/blocked_users_list.html', {'blocked_users': blocked_users})
+
+
+
+
+
 
 
 @login_required
@@ -526,8 +856,18 @@ def block_user(request, username):
     # Block the user (adjust this based on your actual implementation)
     request.user.blocked_users.add(user_to_block)
 
+    # Unfollow the user if already following
+    if user_to_block in request.user.following.all():
+        request.user.following.remove(user_to_block)
+        user_to_block.followers.remove(request.user)
+        request.user.save()
+        user_to_block.save()
+
     # Redirect back to the discover page, excluding the blocked user
     return redirect('discover')
+
+
+
 
 
 @login_required
@@ -537,9 +877,17 @@ def unblock_user(request, username):
     return redirect('settings')  # Redirect to settings after unblocking
 
 
+
+
+
 def logout_view(request):
     logout(request)
     return render(request, "social_network/login.html", {'csrf_token': csrf.get_token(request)})
+
+
+
+
+
 
 @csrf_exempt
 def signup(request):
@@ -581,23 +929,28 @@ def signup(request):
 
 
 
-def user_posts(request, username):
-    try:
-        user = User.objects.get(username=username)
-        posts = Post.objects.filter(author=user).order_by('-created')
-        return render(request, 'social_network/user_profile.html', {'user': user, 'posts': posts})
-    except User.DoesNotExist:
-        raise Http404("User does not exist.")
+
+
 
 def followers(request, username):
     user = get_object_or_404(User, username=username)
     followers = user.followers.all()
     return render(request, 'social_network/followers.html', {'user': user, 'followers': followers})
 
+
+
+
+
+
 def followings(request, username):
     user = get_object_or_404(User, username=username)
     followings = user.following.all()
     return render(request, 'social_network/followings.html', {'user': user, 'followings': followings})
+
+
+
+
+
 
 
 @login_required
@@ -622,31 +975,76 @@ def change_username(request):
 
     return render(request, 'social_network/change_username.html', {'form': form})
 
+
+
+
+
+
+
 def terms_of_service(request):
     return render(request, 'social_network/terms_of_service.html')
 
+
+
+
+
+
+
 def privacy_policy(request):
     return render(request, 'social_network/privacy_policy.html')
+
+
+
+
+
+
 
 @login_required
 def notifications(request):
     # Retrieve all mentions
     mentions = Mention.objects.all().order_by('-created')
 
-    # Get mentioned users using the find_mentions function for all mentions
-    mention_texts = [mention.post.content if mention.post else mention.comment.post.content for mention in mentions]
-    mentioned_users = find_mentions(" ".join(mention_texts))
+    # Get mentions in posts
+    post_mentions = [mention for mention in mentions if mention.post and request.user.username in mention.post.content]
 
-    # Filter mentioned users to only include the currently logged-in user
-    mentioned_user = [user for user in mentioned_users if user.username == request.user.username]
+    # Get mentions in comments
+    comment_mentions = [mention for mention in mentions if mention.comment and request.user.username in mention.comment.text]
+
+    # Get likes on user's posts with user details
+    user_post_likes = Post.objects.filter(author=request.user).annotate(
+        num_likes=Count('likes'),
+        liked_users_username=F('likes__username'),
+        liked_users_profile_photo=F('likes__profile_photo'),
+        liked_users_created=F('created')  # Use the 'created' field of Post
+    ).values('id', 'num_likes', 'liked_users_username', 'liked_users_profile_photo', 'liked_users_created')
+
+    # Get likes on user's comments with user details
+    user_comment_likes = Comment.objects.filter(user=request.user).annotate(
+        num_likes=Count('likes'),
+        liked_users_username=F('likes__username'),
+        liked_users_profile_photo=F('likes__profile_photo'),
+        liked_users_created=F('created')  # Use the 'created' field of Comment
+    ).values('id', 'num_likes', 'liked_users_username', 'liked_users_profile_photo', 'liked_users_created')
 
     # Calculate the count of unseen notifications
     unseen_notification_count = Mention.objects.filter(user=request.user, seen=False).count()
+    print(f"DEBUG: unseen_notification_count={unseen_notification_count}")
 
     # Mark all notifications as seen after calculating the count
     Mention.objects.filter(user=request.user, seen=False).update(seen=True)
 
-    return render(request, 'social_network/notifications.html', {'unseen_notification_count': unseen_notification_count, 'mentions': mentions, 'mentioned_users': mentioned_user})
+    return render(request, 'social_network/notifications.html', {
+        'unseen_notification_count': unseen_notification_count,
+        'post_mentions': post_mentions,
+        'comment_mentions': comment_mentions,
+        'user_post_likes': user_post_likes,
+        'user_comment_likes': user_comment_likes,
+    })
+
+
+
+
+
 
 
 def delete_account_view(request):
@@ -666,6 +1064,12 @@ def delete_account_view(request):
 
     return render(request, 'social_network/signup.html')  
 
+
+
+
+
+
+
 @login_required
 def like_post(request, post_id):
     post = get_object_or_404(Post, id=post_id)
@@ -677,6 +1081,14 @@ def like_post(request, post_id):
 
     return redirect('index')  # You can redirect to the post details or another page
 
+
+
+
+
+
+
+
+
 @login_required
 def dislike_post(request, post_id):
     post = get_object_or_404(Post, id=post_id)
@@ -687,6 +1099,12 @@ def dislike_post(request, post_id):
         post.dislikes.add(request.user)
 
     return redirect('index')  # You can redirect to the post details or another page
+
+
+
+
+
+
 
 # In your views.py
 @login_required

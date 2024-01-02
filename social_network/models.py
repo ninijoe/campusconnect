@@ -4,6 +4,8 @@ from django import forms
 import datetime
 from django.utils import timezone
 from django.dispatch import receiver
+import gnupg
+from cryptography.fernet import Fernet
 
 
 
@@ -35,7 +37,7 @@ class User(AbstractUser):
     bio = models.TextField(blank=True)
     following = models.ManyToManyField('self', blank=True, symmetrical=False, related_name='followers')
     blocked_users = models.ManyToManyField('self', blank=True, symmetrical=False, related_name='blocked_by_users')
-
+    public_key = models.TextField(blank=True, null=True)
     
 
     def get_first_name(self):
@@ -56,6 +58,73 @@ class User(AbstractUser):
     def get_bio(self):
         return self.bio
     
+    
+    def generate_key_pair(self):
+        # Generate GPG key pair for the user
+        gpg = gnupg.GPG()
+        key_data = gpg.gen_key_input(
+            name_email=self.email,
+            passphrase=self.password,  # Use a better way to handle passphrase
+        )
+        key = gpg.gen_key(key_data)
+        self.public_key = str(key)
+        self.save()
+
+    def get_public_key(self):
+        return self.public_key
+    
+
+
+
+class Message(models.Model):
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_messages')
+    recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='received_messages')
+    encrypted_content = models.TextField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+    is_read = models.BooleanField(default=False)
+
+    def encrypt_content(self, content, key):
+        # Encrypt message content using Fernet symmetric key encryption
+        fernet = Fernet(key)
+        encrypted_data = fernet.encrypt(content.encode())
+        return encrypted_data.decode()
+
+    def decrypt_content(self, key):
+        # Decrypt message content using Fernet symmetric key encryption
+        fernet = Fernet(key)
+        decrypted_data = fernet.decrypt(self.encrypted_content.encode())
+        return decrypted_data.decode()
+
+    def save(self, *args, **kwargs):
+        if not self.sender.public_key:
+            self.sender.generate_key_pair()
+
+        recipient_public_key = self.recipient.get_public_key()
+        self.encrypted_content = self.encrypt_content(self.content, recipient_public_key)
+
+        super().save(*args, **kwargs)
+
+    def get_decrypted_content(self):
+        if self.is_read:
+            recipient_private_key = self.recipient.password  # Use a better way to handle private key
+            return self.decrypt_content(recipient_private_key)
+        return "This message has not been read yet."
+
+
+
+
+
+
+
+class ResharedPost(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reshared_posts')
+    original_post = models.ForeignKey('Post', on_delete=models.CASCADE, related_name='reshares')
+    created = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user} reshared {self.original_post} on {self.created}"
+
+
 
     
 class Post(models.Model):
@@ -65,13 +134,20 @@ class Post(models.Model):
     likes = models.ManyToManyField(User, related_name='liked_posts', blank=True)
     dislikes = models.ManyToManyField(User, related_name='disliked_posts', blank=True)
     image = models.ImageField(upload_to='post_images/', null=True, blank=True)
-    
+    reshare_count = models.PositiveIntegerField(default=0)
+    reshared = models.BooleanField(default=False)  # Add this field
 
     def __str__(self):
-        # Format the 'created' timestamp to a user-friendly string
         formatted_time = self.created.strftime("%b %d, %Y %I:%M %p")
         return f"@{self.author}'s post- (' {self.content[:20]}..' ) {formatted_time}"
-    
+
+    def mark_as_reshared(self):
+        self.reshared = True
+        self.save()
+
+    def increase_reshare_count(self):
+        self.reshare_count += 1
+        self.save()
 
 
 

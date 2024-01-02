@@ -144,3 +144,14 @@ AUTH_USER_MODEL = 'social_network.User'
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
 ]
+
+SECURE_SSL_REDIRECT = False
+
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+
+CSP_HEADER = {
+    'default-src': ["'self'"],
+    'script-src': ["'self'", 'https://cdn.example.com'],
+    # Add other directives as needed
+}

@@ -20,95 +20,114 @@
     <form method="post" action="{% url 'create_post' %}">
         {% csrf_token %}
         {{ form.as_p }}
-        <button type="submit" class="btn btn-primary">Create Post</button>
+        <button type="submit" class="btn btn-primary">            
+            <i class="fas fa-comment" style="font-size: 18px;"></i>
+        </button>
     </form>
 </div>
 <div class="container" style="margin-top: 30px;">
     <div class="row">
         <div class="col-md-13 offset-md-0.3">
             
-            {% for post in posts %}
-            <div class="card mb-3" style="border: 1.5px solid black;  max-width: 90%;">
-                <div class="card-header">
-                    {% if post.author.profile_photo %}
-                        <img src="{{ post.author.profile_photo.url }}" alt="{{ post.author.username }} Profile Picture" class="profile-picture">
-                    {% endif %}
-                    <strong><a href="{% url 'user_profile' post.author.username %}">@{{ post.author }}</a></strong>
-                    <small class="text-muted">{{ post.created }}</small>
-                    <form method="post" action="{% url 'like_post' post.id %}" style="display: inline;">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-link" >
-                            {% if user in post.likes.all %}
-                                <i class="fas fa-thumbs-up" style="color: blue;"></i> Like
-                            {% else %}
-                                <i class="far fa-thumbs-up" style="color: blue;"></i> Like
-                            {% endif %}
-                        </button>
-                        <span>{{ post.likes.count }} likes</span>
-                    </form>
-                    
-                    
-                    
-                    
-                    
-                </div>
-                
-                <div class="card-body" style="background-color: rgb(251, 233, 233);">
-                    <p class="card-text">{{ post.content }}</p>
-                    <p class="card-text">
-                        <a href="#commentsCollapse{{ post.id }}" data-toggle="collapse">
-                            <p class="card-text">
-                                <i class="fas fa-comments"></i>
-                                View Comments ({{ post.comments.count }})
-                            </p>
-                        </a>
-                    </p>
-                    
-                    <div class="collapse" id="commentsCollapse{{ post.id }}">
-                        <!-- Comment form for adding new comments -->
-                        <form method="post" action="{% url 'create_comment' post.id %}">
-                            {% csrf_token %}
-                            <div class="form-group">
-                                <label for="comment_text">Your Comment:</label>
-                                <input type="text" id="comment_text" name="text" class="form-control" placeholder="Write your comment here" required>
-                            </div>
-                            <button type="submit" class="btn btn-primary">Add Comment</button>
-                        </form>
-                        <br>
-                        <!-- Display comments for the post -->
-                        <ul class="list-unstyled">
-                            {% for comment in post.comments.all %}
-                            <li class="media" style="background-color: rgb(248, 250, 251);">
-                                {% if comment.user.profile_photo %}
-                                    <img src="{{ comment.user.profile_photo.url }}" alt="{{ comment.user.username }} Profile Picture" class="profile-picture">
+                    {% for post in posts %}
+                        <div class="card mb-3" style="border: 1.5px solid #ccc;  margin-left: 0px; margin-right: -0px; width: 120%; max-width: none;">
+                            <div class="card-header">
+                                {% if post.is_reshared %}
+                                    
+                                        <p class="text-muted">shared by: 
+                                            <a href="{% url 'user_profile' post.reshared_by.username %}" class="text-primary">@{{ post.reshared_by.username }}</a>
+                                        </p>
+                                    
                                 {% endif %}
 
-                                <div class="media-body">
-                                    <strong><a href="{% url 'user_profile' comment.user.username %}">@{{ comment.user }}</a></strong>
-                                    <p>{{ comment.text }}</p>
-                                    <small class="text-muted">{{ comment.created }}</small>
-                                    <form method="post" action="{% url 'like_comment' comment.id %}" style="display: inline;">
-                                        {% csrf_token %}
-                                        <button class="btn btn-sm">
-                                            {% if user in comment.likes.all %}
-                                                <i class="fas fa-thumbs-down" style="color: rgb(230, 44, 23);"></i> Unlike
-                                            {% else %}
-                                                <i class="far fa-thumbs-up" style="color: blue;"></i> Like
-                                            {% endif %}
-                                        </button>
-                                    </form>
-                                    <span class="like-count">{{ comment.likes.count }} likes</span>
+                        {% if post.author.profile_photo %}
+                            <img src="{{ post.author.profile_photo.url }}" alt="{{ post.author.username }} Profile Picture" class="profile-picture">
+                        {% endif %}
+                        <strong><a href="{% url 'user_profile' post.author.username %}">@{{ post.author }}</a></strong>
+                        <small class="text-muted">{{ post.created }}</small>
+                        <form method="post" action="{% url 'like_post' post.id %}" style="display: inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-link" >
                                 
-                                    <!-- Add a "Delete" button for the comment -->
-                                    {% if comment.user == user %}
-                                    <form method="post" action="{% url 'delete_comment' comment.id %}">
-                                        {% csrf_token %}
-                                        <button type="submit" class="btn btn-danger btn-sm">Delete</button>
-                                    </form>
-                                    {% endif %}
-                                </div>
-                            </li>
-                            {% endfor %}
+                                    <i class="far fa-thumbs-up" style="color: blue;"></i> 
+                                
+                            </button>
+                            <span>{{ post.likes.count }} likes</span>
+                        </form>
+                        &nbsp; &nbsp;
+                        <form method="post" action="{% url 'reshare_index_post' post.id %}" style="display: inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-link">
+                                    <i class="fas fa-retweet" style="color: green;"></i>
+                                </button>
+                        </form>
+                        
+
+                        <span>{{ post.reshares.count }} reshared</span>
+                    
+
+
+                    
+                    
+                        </div>
+                        
+                        <div class="card-body" style="background-color: rgb(251, 247, 247);">
+                            <p class="card-text">{{ post.content }}</p>
+                            <p class="card-text">
+                                <a href="#commentsCollapse{{ post.id }}" data-toggle="collapse" style="text-decoration: none;">
+                                    <p class="card-text">
+                                        <i class="fas fa-comments"></i>
+                                        View Comments ({{ post.comments.count }})
+                                    </p>
+                                </a>
+                            </p>
+                            
+                            <div class="collapse" id="commentsCollapse{{ post.id }}">
+                                <!-- Comment form for adding new comments -->
+                                <form method="post" action="{% url 'create_comment' post.id %}">
+                                    {% csrf_token %}
+                                    <div class="form-group">
+                                        <label for="comment_text">Your Comment:</label>
+                                        <input type="text" id="comment_text" name="text" class="form-control" placeholder="Write your comment here" required>
+                                    </div>
+                                    <a href="{% url 'create_comment' post_id=post.id %}" class="btn btn-primary">
+                                        <i class="fas fa-comment" style="font-size: 18px;"></i>
+                                    </a>                        
+                                </form>
+                                <br>
+                                <!-- Display comments for the post -->
+                                <ul class="list-unstyled">
+                                    {% for comment in post.comments.all %}
+                                    <li class="media" style="background-color: rgb(248, 250, 251);">
+                                        {% if comment.user.profile_photo %}
+                                            <img src="{{ comment.user.profile_photo.url }}" alt="{{ comment.user.username }} Profile Picture" class="profile-picture">
+                                        {% endif %}
+
+                                        <div class="media-body">
+                                            <strong><a href="{% url 'user_profile' comment.user.username %}">@{{ comment.user }}</a></strong>
+                                            <p>{{ comment.text }}</p>
+                                            <small class="text-muted">{{ comment.created }}</small>
+                                            <form method="post" action="{% url 'like_comment' comment.id %}" style="display: inline;">
+                                                {% csrf_token %}
+                                                <button class="btn btn-sm">
+                                                    
+                                                        <i class="far fa-thumbs-up" style="color: blue;"></i> 
+                                                    
+                                                </button>
+                                            </form>
+                                            <span class="like-count">{{ comment.likes.count }} likes</span>
+                                        
+                                            <!-- Add a "Delete" button for the comment -->
+                                            {% if comment.user == user %}
+                                            <form method="post" action="{% url 'delete_comment' comment.id %}">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-danger btn-sm">                <i class="fas fa-trash-alt" style="font-size: 14px;"></i>
+                                                </button>
+                                            </form>
+                                            {% endif %}
+                                        </div>
+                                    </li>
+                        {% endfor %}
                         </ul>
                     </div>
                 </div>
@@ -116,7 +135,8 @@
                 <div class="card-footer">
                     <form method="post" action="{% url 'delete_post' post.id %}">
                         {% csrf_token %}
-                        <button type="submit" class="btn btn-danger" style="background-color: #ff4f4f; color: #fff;">Delete</button>
+                        <button type="submit" class="btn btn-danger" style="background-color: #ff4f4f; color: #fff;">                <i class="fas fa-trash-alt" style="font-size: 14px;"></i>
+                        </button>
                     </form>
                 </div>
                 {% endif %}

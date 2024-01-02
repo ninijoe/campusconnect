@@ -18,7 +18,7 @@
             <div class="profile-photo text-center">
                 <div class="profile-photo-container text-center">
                     {% if user.profile_photo %}
-                        <img src="{{ user.profile_photo.url }}" alt="Profile Photo" class="img-fluid rounded-circle" id="profile-photo">
+                        <img src="{{ user.profile_photo.url }}" alt="{{ user.username }} Profile Photo" class="img-fluid " id="profile-photo">
                     {% else %}
                         <i class="fas fa-user-circle fa-10x text-secondary" id="profile-photo-placeholder"></i>
                     {% endif %}
@@ -31,7 +31,7 @@
                         <label class="custom-file-label" for="profile-photo">
                             <i class="fas fa-cloud-upload-alt"></i> 
                         </label>
-                        <input type="file" class="custom-file-input" id="profile-photo" name="profile-photo">
+                        <input type="file" class="custom-file-input" id="profile-photo" name="profile-photo" onchange="displayFileName()">
                     </div>
                     
                     <button type="submit" class="btn btn-primary mt-2">Upload Photo</button>
@@ -51,10 +51,9 @@
                 <h2 class="mb-4">@{{ user.username }}</h2>
                 <form method="post" action="{% url 'my_profile' %}">
                     {% csrf_token %}
-                    <!-- Existing form fields -->
-                    <!-- ... (other form fields) ... -->
                     
-                    <div class="row">
+                    
+                    <div class="row" >
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label for="first-name">First Name</label>
@@ -68,8 +67,6 @@
                             </div>
                         </div>
                     </div>
-
-                    <!-- ... (other form fields) ... -->
 
                     <div class="row">
                         <div class="col-md-6">
@@ -85,8 +82,6 @@
                             </div>
                         </div>
                     </div>
-
-                    <!-- ... (other form fields) ... -->
 
                     <div class="row">
                         <div class="col-md-6">
@@ -159,28 +154,58 @@
     <br>
     
     <!-- Link to display all posts -->
-    <a href="{% url 'display_posts' %}" class="btn btn-secondary">View All Posts</a>
+    <a href="{% url 'display_my_profile_posts' %}" class="btn btn-secondary">View All Posts</a>
 </div>
 
 <div class="container mt-5">
     <div class="row">
         <div class="col-md-12">
             {% for post in posts %}
-            <div class="card mb-4">
+            <div class="card mb-3" style="border: 1.5px solid #ccc;  left: 0px; right: 60px; width: 100%;">
+
                 <div class="card-header">
+                    
+
+                    {% if post.is_reshared %}
+                                    
+                                        <p class="text-muted">shared by: 
+                                            <a href="{% url 'user_profile' post.reshared_by.username %}" class="text-primary">@{{ post.reshared_by.username }}</a>
+                                        </p>
+                                    
+                    {% endif %}
+
+
+
+
                     {% if post.author.profile_photo %}
                         <img src="{{ post.author.profile_photo.url }}" alt="{{ post.author.username }} Profile Picture" class="profile-picture img-fluid rounded-circle mr-2" style="width: 40px; height: 40px; object-fit: cover;">
                     {% endif %}
                     <strong><a href="{% url 'user_profile' post.author.username %}">@{{ post.author }}</a></strong>
                     <small class="text-muted">{{ post.created }}</small>
-                    <span>{{ post.likes.count }} likes</span>
+                    <form method="post" action="{% url 'like_post' post.id %}" style="display: inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-link" >
+                            
+                                <i class="far fa-thumbs-up" style="color: blue;"></i> 
+                            
+                        </button>
+                        <span>{{ post.likes.count }} likes</span>
+                        &nbsp;
+                    </form>
+                    <!-- Add the Reshare button only if the post is not reshared by the current user -->
+                    
+                        &nbsp;
+                        <i class="fas fa-retweet" style="color: green;"></i>
+                    
+
+                    <span>{{ post.reshares.count }} reshared</span>
                     
                 </div>
-                <div class="card-body" style="background-color: rgb(251, 233, 233);">
+                <div class="card-body" style="background-color: rgb(250, 248, 248);">
                     <p class="card-text">{{ post.content }}</p>
 
-                    <a href="#commentsCollapse{{ post.id }}" data-toggle="collapse">
-                            <p class="card-text">
+                    <a href="#commentsCollapse{{ post.id }}" data-toggle="collapse" style="text-decoration: none;">
+                        <p class="card-text">
                                 <i class="fas fa-comments"></i>
                                 View Comments ({{ post.comments.count }})
                             </p>
@@ -194,7 +219,10 @@
                                 <label for="comment_text">Your Comment:</label>
                                 <input type="text" id="comment_text" name="text" class="form-control" placeholder="Write your comment here" required>
                             </div>
-                            <button type="submit" class="btn btn-primary">Add Comment</button>
+                            <!-- Icon button for adding a comment -->
+                            <a href="{% url 'create_comment' post_id=post.id %}" class="btn btn-primary">
+                                <i class="fas fa-comment" style="font-size: 18px;"></i>
+                            </a>                        
                         </form>
                         <br>
                         <!-- Display comments for the post -->
@@ -213,11 +241,9 @@
                                     <form method="post" action="{% url 'like_comment' comment.id %}" style="display: inline;">
                                         {% csrf_token %}
                                         <button type="submit" class="btn btn-link" >
-                                            {% if user in comment.likes.all %}
-                                                <i class="fas fa-thumbs-up" style="color: blue;"></i> Unlike
-                                            {% else %}
-                                                <i class="far fa-thumbs-up" style="color: blue;"></i> Like
-                                            {% endif %}
+                                            
+                                                <i class="far fa-thumbs-up" style="color: blue;"></i> 
+                                            
                                         </button>
                                         <span>{{ comment.likes.count }} likes</span>
                                     </form>
@@ -225,7 +251,10 @@
                                     {% if comment.user == user %}
                                     <form method="post" action="{% url 'delete_comment' comment.id %}">
                                         {% csrf_token %}
-                                        <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                        <button type="submit" class="btn btn-danger btn-sm">
+                                            <i class="fas fa-trash-alt" style="font-size: 14px;"></i>
+
+                                        </button>
                                     </form>
                                     {% endif %}
                                 </div>
@@ -238,7 +267,8 @@
                 <div class="card-footer">
                     <form method="post" action="{% url 'delete_post' post.id %}">
                         {% csrf_token %}
-                        <button type="submit" class="btn btn-danger" style="background-color: #ff4f4f; color: #fff;">Delete</button>
+                        <button type="submit" class="btn btn-danger" style="background-color: #ff4f4f; color: #fff;">                <i class="fas fa-trash-alt" style="font-size: 14px;"></i>
+                        </button>
                     </form>
                 </div>
                 {% endif %}
@@ -247,4 +277,16 @@
         </div>
     </div>
 </div>
+<script>
+    function displayFileName() {
+        const input = document.getElementById('profile-photo');
+        const label = document.querySelector('.custom-file-label');
+    
+        if (input.files.length > 0) {
+            label.innerHTML = input.files[0].name;
+        } else {
+            label.innerHTML = '<i class="fas fa-cloud-upload-alt"></i>';
+        }
+    }
+    </script>
 {% endblock %}

@@ -28,7 +28,7 @@
     <!-- Font Awesome -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
 </head>
-<body style="background-color: #b3b3b3; margin: 0; padding: 0;">
+<body style="background-color: #3d91d5; margin: 0; padding: 0; background-image: url('/static/images/banner.png');">
 
     <!-- Bootstrap row -->
     <div class="container-fluid">
@@ -44,7 +44,7 @@
     </div>
     
     <!-- Horizontal navigation bar -->
-    <nav class="navbar navbar-expand-md navbar-dark bg-dark">
+    <nav class="navbar navbar-expand-md navbar-dark bg-dark" style="height: 70px;">
         <div class="container-fluid">
             <div class="navbar-collapse" id="navbarNav">
                 
@@ -74,6 +74,11 @@
                             {% endif %}
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a href="{% url 'messages' %}" class="nav-link {% if request.path == '/messages/' %}active{% endif %}">
+                            <i class="fas fa-envelope"></i> Messages
+                        </a>
+                    </li>
                     
                     <!-- Settings Link -->
                     <li class="nav-item">
@@ -92,7 +97,7 @@
     <!-- Content navbar -->
     <div class="content-navbar" style="background-color: #c5d1dd; color: white; padding: 10px; height: 2.5rem; border: 1px solid black; font-weight: bold;">
         <h1 style="font-weight: bold; font-size: 20px;  color: rgb(8, 7, 7); margin-top: 0px;">
-                    Welcome, @{{ request.user.username }}
+                    Welcome @{{ request.user.username }}
                 </h1>
         <div class="content-text" style="color: rgb(25, 23, 23);">
             
@@ -107,7 +112,7 @@
     <div class="main-content" style="background: linear-gradient(to bottom, rgb(251, 245, 245), rgb(240, 230, 230), rgb(230, 220, 220), rgb(220, 210, 210)); overflow-y: auto; height: calc(100% - 2.5rem); padding: 20px; margin: 10px;">
         {% block main_content %}
             <!-- Add your main content here -->
-            <p>Your main content goes here.</p>
+            
         {% endblock %}
     </div>
 </div>

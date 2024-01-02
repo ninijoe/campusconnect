@@ -75,7 +75,7 @@ class PostForm(forms.ModelForm):
         fields = ['content']
 
     content = forms.CharField(
-        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': '4', 'placeholder': 'Write your post here...' , 'style': 'width: 90%;'}),
+        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': '4', 'placeholder': 'Write your post here...' , 'style': 'width: 100%;'}),
         label='',
     )
 

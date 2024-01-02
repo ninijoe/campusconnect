@@ -1,0 +1,34 @@
+
+{% extends "social_network/layout.html" %}
+
+{% load static %}
+
+{% block main_content %}
+   <h1>Conversations</h1>
+   <ul>
+    {% for conversation_id in conversations %}
+        {% if conversation_id %}
+            {% with username=conversation_id|cut:'-' %}
+                <li><a href="{% url 'message_detail' username=username %}">{{ username }}</a></li>
+            {% endwith %}
+        {% endif %}
+    {% endfor %}
+   </ul>
+
+   <h2>New Message</h2>
+   {% if conversations %}
+       {% with username=conversations.0|cut:'-' %}
+           <form method="post" action="{% url 'send_message' username=username %}">
+               {% csrf_token %}
+               <label for="recipient">Recipient:</label>
+               <input type="text" name="recipient" required>
+               <br>
+               <label for="content">Message:</label>
+               <textarea name="content" placeholder="Type your message" required></textarea>
+               <br>
+               <button type="submit">Send</button>
+           </form>
+       {% endwith %}
+   {% endif %}
+   
+{% endblock %}

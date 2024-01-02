@@ -3,7 +3,7 @@
 
 {% block main_content %}
 
-<div class="content" style="background-color: rgb(251, 245, 245); width: 800px; position: absolute; top: 60px; left: 6%; bottom: 0; overflow-y: auto;">
+<div class="content" style="background: linear-gradient(to bottom, rgb(251, 245, 245), rgb(240, 230, 230), rgb(230, 220, 220), rgb(220, 210, 210)); position: relative; top: 20px;">
     <h1>@{{ user.username }} follows</h1>
     <div class="row row-cols-1 row-cols-md-4" style="max-width: 95%;">
         {% for following in followings %}

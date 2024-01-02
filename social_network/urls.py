@@ -8,6 +8,7 @@ from .views import change_username
 from .views import terms_of_service, privacy_policy
 from .views import delete_account_view
 from .views import like_comment
+from .views import display_index_posts, reshare_index_post, delete_post
 
 
 
@@ -31,6 +32,10 @@ urlpatterns = [
 
     # URL for the index view (requires login)
     path("index/", views.index, name="index"),
+
+    path("reshare_index_post/<int:post_id>/", views.reshare_index_post, name='reshare_index_post'),
+
+    path("reshare_user_profile_post/<int:post_id>/", views.reshare_user_profile_post, name='reshare_user_profile_post'),
 
     # URL for the login view
     path("login/", views.login_view, name="login"),
@@ -58,21 +63,23 @@ urlpatterns = [
     # URL for creating a new post
     path("create_post/", views.create_post, name="create_post"),
     
-    # URL for displaying posts
-    path("display_posts/", views.display_posts, name="display_posts"),
-
     path('delete_post/<int:post_id>/', views.delete_post, name='delete_post'),
 
     # Add this URL pattern for the user profile page
     path('user_profile/<str:username>/', views.user_profile, name='user_profile'),
 
     path('user/<str:username>/posts/', views.user_posts, name='user_posts'),
+    
+    path('user/<str:username>/', views.user_profile, name='user_profile'),
 
     path('follow_user/', views.follow_user, name='follow_user'),
 
     path('<str:username>/followers/', views.followers, name='followers'),
     
     path('<str:username>/followings/', views.followings, name='followings'),
+
+    path('my_profile_posts/', views.display_my_profile_posts, name='display_my_profile_posts'),
+
 
     # URL pattern for creating comments on a post
     path('create_comment/<int:post_id>/', views.create_comment, name='create_comment'),
@@ -111,6 +118,12 @@ urlpatterns = [
 
     path('like_comment/<int:comment_id>/', views.like_comment, name='like_comment'),
 
+    path('messages/', views.messages, name='messages'),
 
+    path('send_message/<str:username>/', views.send_message, name='send_message'),
+
+    path('messages/<str:username>/', views.message_detail, name='message_detail'),
+
+    
 
 ]
