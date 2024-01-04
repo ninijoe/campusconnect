@@ -128,6 +128,30 @@ class ResharedPost(models.Model):
         return self.reshares.filter(user=user).exists()
 
 
+
+
+
+
+class PostMedia(models.Model):
+    photo = models.ImageField(upload_to='post_media/', null=True, blank=True)
+    video = models.FileField(upload_to='post_media/', null=True, blank=True)
+    tags = models.CharField(max_length=255, null=True, blank=True)
+    location = models.CharField(max_length=255, null=True, blank=True)
+
+    def __str__(self):
+        return f"PostMedia - ID: {self.id}"
+
+    def delete(self, *args, **kwargs):
+        # Delete associated media files from storage
+        if self.photo:
+            self.photo.delete(save=False)
+        if self.video:
+            self.video.delete(save=False)
+        super().delete(*args, **kwargs)
+
+
+
+
     
 class Post(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -138,6 +162,8 @@ class Post(models.Model):
     image = models.ImageField(upload_to='post_images/', null=True, blank=True)
     reshare_count = models.PositiveIntegerField(default=0)
     reshared = models.BooleanField(default=False)  # Add this field
+    media = models.OneToOneField(PostMedia, on_delete=models.CASCADE, null=True, blank=True)
+
 
     def __str__(self):
         formatted_time = self.created.strftime("%b %d, %Y %I:%M %p")
@@ -150,6 +176,12 @@ class Post(models.Model):
     def increase_reshare_count(self):
         self.reshare_count += 1
         self.save()
+
+    def delete(self, *args, **kwargs):
+        # Delete associated media when post is deleted
+        if self.media:
+            self.media.delete()
+        super().delete(*args, **kwargs)
 
     
 

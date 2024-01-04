@@ -24,8 +24,8 @@ from django.db.models import Q
 import random
 from django.contrib.auth.models import User
 from django.http import Http404
-from .models import Post , Comment , Mention, Message, ResharedPost
-from .forms import PostForm , FollowForm , CommentForm , ProfilePhotoForm
+from .models import Post , Comment , Mention, Message, ResharedPost 
+from .forms import PostForm , FollowForm , CommentForm , ProfilePhotoForm, PostMediaForm
 from django.db.models import F
 from django.contrib import messages
 from .models import User
@@ -441,9 +441,14 @@ def create_post(request):
     
     if request.method == 'POST':
         form = PostForm(request.POST)
+        media_form = PostMediaForm(request.POST, request.FILES)
         if form.is_valid():
             post = form.save(commit=False)
             post.author = user
+            post.save()
+
+            media = media_form.save()
+            post.media = media
             post.save()
 
             # Extract mentions from the post content
@@ -452,6 +457,14 @@ def create_post(request):
             # Save mentions in the Mention model
             for mentioned_user in mentioned_users:
                 Mention.objects.create(post=post, user=user)
+            
+            # Redirect back to the referring page
+            referring_page = request.META.get('HTTP_REFERER')
+            return redirect(referring_page)
+    
+    # Handle the case where the form is not valid or when the request method is not POST
+    # You might want to add additional context or logic here
+    return HttpResponse("An error occurred while creating the post.")
 
 
 
@@ -661,15 +674,7 @@ def update_bio(request):
 
         
 
-    # Check the Referer header to determine the previous page
-    referer = request.META.get('HTTP_REFERER')
-    if referer:
-        # Redirect the user back to the previous page
-        return redirect(referer)
-    else:
-        # If no referer is provided, redirect to a default page (e.g., index)
-        return redirect('index')  # Change 'index' to the appropriate URL name
-
+    
 
 
 
@@ -1011,44 +1016,39 @@ def logout_view(request):
 
 
 
-
 @csrf_exempt
 def signup(request):
     if request.method == "POST":
-        # Take in the user username, email, and other fields submitted in the signup form
         username = request.POST["username"]
         email = request.POST["email"]
-        # ... other fields ...
-
-        # Ensure the password matches the confirmation
         password = request.POST["password"]
         confirmation = request.POST["confirmation"]
+
         if password != confirmation:
             return render(request, "social_network/signup.html", {
                 "message": "Passwords must match."
             })
 
-        # Attempt to create a new user
+        # Check if the user has agreed to the terms
+        agree_to_terms = request.POST.get("agree_to_terms")
+        if not agree_to_terms:
+            return render(request, "social_network/signup.html", {
+                "message": "Please agree to the Terms of Service."
+            })
+
         try:
             user = User.objects.create_user(username, email, password)
-            # ... set other fields ...
             user.save()
+            login(request, user)
+            return render(request, 'social_network/discover.html', {
+                "show_content": True
+            })
         except IntegrityError:
             return render(request, "social_network/signup.html", {
                 "message": "Username or email already taken."
             })
 
-        # Log the user in
-        login(request, user)
-
-        # Render the index page with the specified content
-        return render(request, 'social_network/discover.html', {
-            "show_content": True  # Add this context variable
-        })
-    else:
-        return render(request, "social_network/signup.html", {'csrf_token': csrf.get_token(request)})
-
-
+    return render(request, "social_network/signup.html", {'csrf_token': csrf.get_token(request)})
 
 
 

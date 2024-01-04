@@ -1,7 +1,7 @@
 from django import forms
 from .models import User
 from .models import Post
-from .models import Comment
+from .models import Comment, PostMedia 
 from django.contrib.auth.forms import UserChangeForm , PasswordChangeForm
 from django.contrib.auth import authenticate
 from django.contrib.auth.forms import PasswordResetForm
@@ -70,6 +70,20 @@ class DepartmentForm(forms.Form):
 
 
 
+class PostMediaForm(forms.ModelForm):
+    class Meta:
+        model = PostMedia
+        fields = ['photo', 'video', 'tags', 'location']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Add classes or attributes to your form fields if needed
+
+    def as_p(self):
+        return mark_safe(str(self))
+
+
+
 class PostForm(forms.ModelForm):
     class Meta:
         model = Post
@@ -80,6 +94,9 @@ class PostForm(forms.ModelForm):
         label='',
     )
 
+    media_form = PostMediaForm()  # Include the media form as a field
+
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -88,6 +105,9 @@ class PostForm(forms.ModelForm):
                          '<i class="fas fa-camera" style="position: absolute; right: 10px; top: 80px; color:grey; z-index: 1;"></i>' +
                          str(self) +
                          '</div>')
+    
+
+
 
 class CommentForm(forms.ModelForm):
     class Meta:
@@ -110,3 +130,6 @@ class ProfilePhotoForm(forms.ModelForm):
     class Meta:
         model = User
         fields = ['profile_photo']
+
+
+

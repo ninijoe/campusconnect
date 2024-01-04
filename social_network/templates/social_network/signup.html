@@ -27,11 +27,21 @@
                     
                     <input class="form-control form-control-lg" type="password" id="password" name="password" placeholder="Password" required>
                 </div>
+                
                 <div class="form-group">
                     
                     <input class="form-control form-control-lg" type="password" id="confirm_password" name="confirmation" placeholder="Confirm Password" required>
                 </div>
-                <button class="btn btn-primary btn-lg btn-block" type="submit">Sign Up</button>
+                <!-- Agree to Terms of Service checkbox in a banner -->
+                <div class="alert alert-info">
+                    <input class="form-check-input" type="checkbox" id="agree_to_terms" name="agree_to_terms" required>
+                    <label class="form-check-label font-weight-bold" for="agree_to_terms">
+                        I agree to the <a href="{% url 'terms_of_service' %}" class="text-primary">Terms of Service</a>
+                    </label>
+                </div>
+
+
+                <button class="btn btn-primary btn-lg btn-block" type="submit">Sign Up - Please ensure you save your login credentials in a safe folder as there is no account recovery option currently</button>
                 
                 <!-- Add "already have an account? login here" link -->
                 <p class="font-weight-bold" class="mt-1" style="color: aliceblue; font-size: 30px;">Already have an account? <a href="{% url 'login' %}" class="text-primary font-weight-bold">Login here</a></p>

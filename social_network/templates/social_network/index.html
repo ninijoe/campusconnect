@@ -22,12 +22,17 @@
     <div class="mb-3" id="post-creation-form">
         <form method="post" action="{% url 'create_post' %}">
             {% csrf_token %}
-            {{ form.as_p_with_icon }}
+            
+            <div id="media-upload-container" style="cursor: pointer;">
+                {{ form.as_p_with_icon }}
+            </div>
+
             <br>
             <button type="submit" class="btn btn-primary">            
                 <i class="fas fa-comment" style="font-size: 18px;"></i>
             </button>
         </form>
+        
     </div>
     
 </div>
@@ -135,6 +140,7 @@
                                             {% endif %}
                                         </div>
                                     </li>
+                        </div>
                         {% endfor %}
                         </ul>
                     </div>
@@ -153,6 +159,20 @@
         </div>
     </div>
 </div>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        var cameraIcon = document.getElementById("camera-icon");
+        var mediaInputField = document.getElementById("media-input-field");
+
+        cameraIcon.addEventListener("click", function (event) {
+            event.preventDefault(); // Prevent the default behavior (e.g., following the link)
+
+            // Show the media input field
+            mediaInputField.style.display = 'block';
+        });
+    });
+</script>
+
 {% endblock %}
 
 {% block nav_home_active %}
