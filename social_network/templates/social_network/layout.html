@@ -51,15 +51,12 @@
                 <ul class="navbar-nav ml-auto">
                     <!-- Add your navigation links here -->
                     <li class="nav-item">
-                        <a href="{% url 'my_profile' %}" class="nav-link {% if request.path == '/my_profile/' %}active{% endif %}">
-                            <i class="fas fa-user"></i> My Profile
-                        </a>
-                    </li>
-                    <li class="nav-item">
                         <a href="{% url 'index' %}" class="nav-link {% if request.path == '/index/' %}active{% endif %}">
                             <i class="fas fa-home"></i> Home
                         </a>
                     </li>
+                    
+                    
                     <li class="nav-item">
                         <a href="{% url 'discover' %}" class="nav-link {% if request.path == '/discover/' %}active{% endif %}">
                             <i class="fas fa-compass"></i> Discover
@@ -69,14 +66,21 @@
                     <li class="nav-item">
                         <a href="{% url 'notifications' %}" class="nav-link {% if request.path == '/notifications/' %}active{% endif %}" id="notifications-link">
                             <i class="fas fa-bell"></i> Notifications
-                            {% if unseen_notification_count > 0 %}
-                                <span id="notifications-badge" class="badge badge-pill badge-danger">{{ unseen_notification_count }}</span>
-                            {% endif %}
+                            <span id="notification-count-container">
+                                {% include 'social_network/notification_count.html' %}
+                            </span>
                         </a>
                     </li>
+                    
                     <li class="nav-item">
                         <a href="{% url 'messages' %}" class="nav-link {% if request.path == '/messages/' %}active{% endif %}">
                             <i class="fas fa-envelope"></i> Messages
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a href="{% url 'my_profile' %}" class="nav-link {% if request.path == '/my_profile/' %}active{% endif %}">
+                            <i class="fas fa-user"></i> My Profile
                         </a>
                     </li>
                     
@@ -129,46 +133,20 @@
     </div>
     
     <!-- New div for additional content -->
-    <div class="additional-content">
+    <div class="additional-content" style="margin-top: 100%; margin-bottom: 20%;">
         <div class="user-links">
             <a href="{% url 'terms_of_service' %}" style="color: #090909;">Terms</a> |
             <a href="{% url 'privacy_policy' %}" style="color: #050505;">Privacy</a>
         </div>
         <p style="font-size: 12px;">A Joseph Ephraim Production</p>
         <ul style="list-style: none; padding-left: 0; margin: 0;">
-            <li style="font-size: 10px; margin: 0;"><a href="mailto:josephephraim68@yahoo.com">josephephraim68@yahoo.com</a></li>
         </ul>
     </div>
 </div>
 
 
-    <!-- Add your JavaScript for notifications here -->
-    <script>
-        function goBack() {
-            window.history.back();
-        }
+    
 
-        document.addEventListener('DOMContentLoaded', function () {
-            // Get the notifications link and badge
-            const notificationsLink = document.getElementById('notifications-link');
-            const notificationsBadge = document.getElementById('notifications-badge');
-        
-            // Check if there are unread notifications
-            const unreadCount = parseInt('{{ unread_count }}');  // You need to pass the unread count from your backend
-        
-            // Update the badge content
-            if (unreadCount > 0) {
-                notificationsBadge.innerText = unreadCount;
-                notificationsBadge.style.display = 'inline-block';  // Show the badge
-            } else {
-                notificationsBadge.style.display = 'none';  // Hide the badge
-            }
-        
-            // Add a click event listener to hide the badge when the notifications link is clicked
-            notificationsLink.addEventListener('click', function () {
-                notificationsBadge.style.display = 'none';  // Hide the badge
-            });
-        });
-    </script>
+
 </body>
 </html>

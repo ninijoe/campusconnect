@@ -28,10 +28,15 @@
                             {% endif %}
                         </form>
                     
-                        <form method="post" action="{% url 'block_user' user.username %}">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-danger mt-3">Block</button>
-                        </form>
+                        {% if user_profile == request.user %}
+                            {# This is the user's own profile, so don't render the form #}
+                        {% else %}
+                            <form method="post" action="{% url 'block_user' user_profile.username %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger mt-3">Block</button>
+                            </form>
+                        {% endif %}
+
                     </div>
                     
                     
@@ -135,7 +140,7 @@
                         {% endif %}
                     
                         {% if post.author.profile_photo %}
-                            <img src="{{ post.author.profile_photo.url }}" alt="{{ post.author.username }} Profile Picture" class="profile-picture img-fluid rounded-circle">
+                            <img src="{{ post.author.profile_photo.url }}" alt="{{ post.author.username }} Profile Picture" class="profile-picture img-fluid rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">
                         {% endif %}
                         <strong><a href="{% url 'user_profile' post.author.username %}" class="text-primary">@{{ post.author }}</a></strong>
                         <small class="text-muted">{{ post.created }}</small>
@@ -178,17 +183,18 @@
                                     <label for="comment_text">Your Comment:</label>
                                     <input type="text" id="comment_text" name="text" class="form-control" placeholder="Write your comment here" required>
                                 </div>
-                                <!-- Icon button for adding a comment -->
                                 <a href="{% url 'create_comment' post_id=post.id %}" class="btn btn-primary">
-                                    <i class="fas fa-comment" style="font-size: 18px;"></i>
-                                </a>                            
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-comment" style="font-size: 18px;"></i>
+                                    </button>
+                                </a>                           
                             </form>
                             <br>
                             <ul class="list-unstyled">
                                 {% for comment in post.comments.all %}
                                 <li class="media" style="background-color: #e0e0e0;">
                                     {% if comment.user.profile_photo %}
-                                        <img src="{{ comment.user.profile_photo.url }}" alt="{{ comment.user.username }} Profile Picture" class="profile-picture img-fluid rounded-circle">
+                                        <img src="{{ comment.user.profile_photo.url }}" alt="{{ comment.user.username }} Profile Picture" class="profile-picture img-fluid rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">
                                     {% endif %}
                                         <div class="media-body">
                                         <strong><a href="{% url 'user_profile' comment.user.username %}" class="text-primary">@{{ comment.user }}</a></strong>

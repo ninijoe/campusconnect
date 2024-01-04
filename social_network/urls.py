@@ -124,6 +124,11 @@ urlpatterns = [
 
     path('messages/<str:username>/', views.message_detail, name='message_detail'),
 
+    path('unshare_post/<int:post_id>/', views.unshare_post, name='unshare_post'),
+
+    path('reset_notification_count/', views.reset_notification_count, name='reset_notification_count'),
     
+    path('notification_count/', views.notification_count, name='notification_count'),
+
 
 ]

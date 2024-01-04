@@ -124,6 +124,8 @@ class ResharedPost(models.Model):
     def __str__(self):
         return f"{self.user} reshared {self.original_post} on {self.created}"
 
+    def is_reshared_by_user(self, user):
+        return self.reshares.filter(user=user).exists()
 
 
     
@@ -149,6 +151,7 @@ class Post(models.Model):
         self.reshare_count += 1
         self.save()
 
+    
 
 
 class Comment(models.Model):

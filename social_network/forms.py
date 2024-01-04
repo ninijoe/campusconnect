@@ -5,9 +5,8 @@ from .models import Comment
 from django.contrib.auth.forms import UserChangeForm , PasswordChangeForm
 from django.contrib.auth import authenticate
 from django.contrib.auth.forms import PasswordResetForm
+from django.utils.safestring import mark_safe
 
-from django import forms
-from .models import Post
 
 DEPARTMENT_CHOICES = [
     ('ABE', 'ABE (Adult Basic Education)'),
@@ -69,15 +68,32 @@ class ChangePasswordForm(PasswordChangeForm):
 class DepartmentForm(forms.Form):
     department = forms.ChoiceField(choices=DEPARTMENT_CHOICES, widget=forms.Select(attrs={'class': 'form-control'}))
 
+
+
 class PostForm(forms.ModelForm):
     class Meta:
         model = Post
         fields = ['content']
 
     content = forms.CharField(
-        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': '4', 'placeholder': 'Write your post here...' , 'style': 'width: 100%;'}),
+        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': '4', 'placeholder': 'Write your post here...'}),
         label='',
     )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['content'].widget = forms.Textarea(
+            attrs={'class': 'form-control', 'rows': '4', 'placeholder': 'Write your post here...'}
+        )
+
+        # Add a camera icon to the widget
+        self.fields['content'].widget.attrs.update({
+            'class': 'form-control with-icon',
+            'style': 'position: relative;',
+        })
+
+    def as_p_with_icon(self):
+        return mark_safe('<i class="fas fa-camera" style="position: relative; right: 25%; top: 36%; z-index: 1;"></i>' + str(self.as_p()))
 
 
 class CommentForm(forms.ModelForm):

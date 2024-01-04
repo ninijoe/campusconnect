@@ -2,7 +2,7 @@
 from django.contrib.auth.hashers import check_password
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect , HttpResponseForbidden
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.hashers import check_password
 from django.urls import reverse
@@ -25,7 +25,7 @@ import random
 from django.contrib.auth.models import User
 from django.http import Http404
 from .models import Post , Comment , Mention, Message, ResharedPost
-from .forms import PostForm , FollowForm , CommentForm
+from .forms import PostForm , FollowForm , CommentForm , ProfilePhotoForm
 from django.db.models import F
 from django.contrib import messages
 from .models import User
@@ -41,6 +41,10 @@ from django.contrib.auth.models import User  # Import the User model
 from .models import User
 from itertools import chain
 from operator import attrgetter
+from django.http import JsonResponse
+from django.db.models.functions import Coalesce
+from django.db.models import Count, F, Value
+
 
 
 @login_required
@@ -71,6 +75,11 @@ def messages(request):
     return render(request, 'social_network/messages.html', {'conversations': conversations})
 
 
+
+
+
+
+
 @login_required
 def message_detail(request, username):
     recipient = get_object_or_404(User, username=username)
@@ -83,6 +92,10 @@ def message_detail(request, username):
         decrypted_messages.append((message.sender, decrypted_content, message.timestamp))
 
     return render(request, 'social_network/message_detail.html', {'recipient': recipient, 'messages': decrypted_messages})
+
+
+
+
 
 @login_required
 def send_message(request, username):
@@ -133,6 +146,9 @@ def index(request):
 
     # Use display_index_posts to get the posts
     posts = display_index_posts(request)
+    # Get the reshared posts by user and user's followings
+    reshared_posts = ResharedPost.objects.filter(Q(user=request.user) | Q(user__in=request.user.following.all()))
+
     form = PostForm()  # Include the form for creating a new post
 
     if request.method == "POST":
@@ -147,7 +163,7 @@ def index(request):
                 return redirect('index')
 
     # Pass the correct context to render
-    context = {'form': form, 'home_link_clicked': home_link_clicked, 'posts': posts}
+    context = {'form': form, 'home_link_clicked': home_link_clicked, 'posts': posts, 'reshared_posts': reshared_posts}
     return render(request, 'social_network/index.html', context)
 
 
@@ -263,59 +279,44 @@ def like_comment(request, comment_id):
 
 
 
-
-
-
-@login_required(login_url='login')
-def create_comment(request, post_id):
-    # Retrieve the post object using the post_id
-    post = get_object_or_404(Post, pk=post_id)
-
+@login_required
+def update_profile(request):
     if request.method == 'POST':
-        form = CommentForm(request.POST)
-        if form.is_valid():
-            comment = form.save(commit=False)
-            comment.user = request.user  # Assign the current user as the comment author
-            comment.post = post
-            comment.save()
+        user_id = request.POST.get('user-id')
+        new_first_name = request.POST.get('first-name')
+        new_last_name = request.POST.get('last-name')
+        new_gender = request.POST.get('gender')
+        new_department = request.POST.get('department')
+        new_year_of_study = request.POST.get('year-of-study')
 
-            # Find mentions in the comment text and create Mention objects
-            mentioned_users = find_mentions(comment.text)
-            for mentioned_user in mentioned_users:
-                Mention.objects.create(user=mentioned_user, comment=comment)
+        try:
+            user = User.objects.get(id=user_id)
 
-    # Redirect back to the referring page (the page where the comment was posted)
-    referring_page = request.META.get('HTTP_REFERER')
-    if referring_page:
-        return HttpResponseRedirect(referring_page)
-    # Handle other cases or return an error response if needed
-    return HttpResponseServerError("Invalid request.")
+            # Update fields if new values are provided
+            if new_first_name is not None:
+                user.first_name = new_first_name
+            if new_last_name is not None:
+                user.last_name = new_last_name
+            if new_gender is not None:
+                user.gender = new_gender
+            if new_department is not None:
+                user.department = new_department
+            if new_year_of_study is not None:
+                user.year_of_study = new_year_of_study
 
+            # Handle profile photo upload
+            if 'profile-photo' in request.FILES:
+                profile_photo = request.FILES['profile-photo']
+                user.profile_photo = profile_photo
 
+            # Save the updated user object
+            user.save()
 
+            messages.success(request, "Profile updated successfully.")
+            return redirect("my_profile")
 
-
-
-
-@login_required
-def delete_comment(request, comment_id):
-    try:
-        comment = Comment.objects.get(id=comment_id)
-
-        # Check if the current user is the author of the comment
-        if comment.user == request.user:
-            comment.delete()
-            messages.success(request, "Comment deleted successfully.")
-        else:
-            messages.error(request, "You do not have permission to delete this comment.")
-
-    except Comment.DoesNotExist:
-        messages.error(request, "Comment does not exist.")
-
-    # Redirect back to the referring page (the page where the comment was deleted from)
-    referring_page = request.META.get('HTTP_REFERER')
-    if referring_page:
-        return HttpResponseRedirect(referring_page)
+        except User.DoesNotExist:
+            messages.error(request, "An error occurred while updating the profile.")
 
     # Handle other cases or return an error response if needed
     return HttpResponseServerError("Invalid request.")
@@ -324,50 +325,6 @@ def delete_comment(request, comment_id):
 
 
 
-
-
-
-@login_required
-def follow_user(request):
-    if request.method == "POST":
-        follow_form = FollowForm(request.POST)
-        if follow_form.is_valid():
-            user_to_follow_id = follow_form.cleaned_data.get('user_to_follow')
-            user_to_follow = User.objects.get(pk=user_to_follow_id)
-
-            if user_to_follow == request.user:
-                # Prevent following oneself
-                raise Http404("Invalid request")
-
-            if user_to_follow in request.user.following.all():
-                # User is already following, so unfollow
-                request.user.following.remove(user_to_follow)
-                user_to_follow.followers.remove(request.user)
-            else:
-                # User is not following, so follow
-                request.user.following.add(user_to_follow)
-                user_to_follow.followers.add(request.user)
-
-            # Update the following and follower counts
-            request.user.save()
-            user_to_follow.save()
-
-            # Render the user_profile page of the user they followed or unfollowed
-            return render(request, 'social_network/user_profile.html', {
-                'user': user_to_follow,
-                'follow_form': follow_form,
-            })
-
-    # Handle other cases or errors here if needed
-    raise Http404("Invalid request")
-
-
-
-
-
-
-
-@login_required
 def update_profile_photo(request):
     if request.method == 'POST':
         try:
@@ -375,6 +332,12 @@ def update_profile_photo(request):
 
             # Check if 'profile-photo' is in the request.FILES
             if 'profile-photo' in request.FILES:
+                
+
+                # Remove the existing profile photo before saving the new one
+                if user.profile_photo:
+                    user.profile_photo.delete(save=False)
+
                 profile_photo = request.FILES['profile-photo']
 
                 # Save the uploaded profile photo to the user's profile
@@ -390,7 +353,133 @@ def update_profile_photo(request):
             messages.error(request, "An error occurred while updating the profile photo.")
 
     # Redirect back to the profile page even on error
-    return redirect("my_profile")
+    return redirect("my_profile") 
+
+
+
+
+
+
+
+@login_required(login_url='login')
+def create_comment(request, post_id):
+    # Retrieve the post object using the post_id
+    post = get_object_or_404(Post, pk=post_id)
+    
+
+    if request.method == 'POST':
+        form = CommentForm(request.POST)
+        if form.is_valid():
+            
+            comment = form.save(commit=False)
+            comment.user = request.user  # Assign the current user as the comment author
+            comment.post = post
+            comment.save()
+        
+        
+        
+            # Find mentions in the comment text and create Mention objects
+            mentioned_users = find_mentions(comment.text)
+            for mentioned_user in mentioned_users:
+                Mention.objects.create(user=mentioned_user, comment=comment)
+
+            print("Comment created successfully")
+
+    # Redirect back to the referring page (the page where the comment was posted)
+    referring_page = request.META.get('HTTP_REFERER')
+    if referring_page:
+        return HttpResponseRedirect(referring_page)
+    # Handle other cases or return an error response if needed
+
+    
+
+    
+    return HttpResponseServerError("Invalid request.")
+
+
+
+
+
+
+
+
+
+
+@login_required
+def delete_comment(request, comment_id):
+    try:
+        comment = Comment.objects.get(id=comment_id)
+
+        # Check if the current user is the author of the comment
+        if comment.user == request.user:
+            comment.delete()
+            # Redirect back to the referring page (the page where the comment was deleted from)
+            referring_page = request.META.get('HTTP_REFERER')
+            if referring_page:
+                return HttpResponseRedirect(referring_page)
+        
+    except Comment.DoesNotExist:
+        # Handle other cases or return an error response if needed
+        return HttpResponseServerError("Invalid request.")
+
+    
+
+    
+
+
+
+
+
+
+
+
+
+
+@login_required(login_url='login')
+def create_post(request):
+    user = request.user
+    
+    if request.method == 'POST':
+        form = PostForm(request.POST)
+        if form.is_valid():
+            post = form.save(commit=False)
+            post.author = user
+            post.save()
+
+            # Extract mentions from the post content
+            mentioned_users = find_mentions(post.content)
+
+            # Save mentions in the Mention model
+            for mentioned_user in mentioned_users:
+                Mention.objects.create(post=post, user=user)
+
+
+
+
+
+
+
+@login_required
+def unshare_post(request, post_id):
+    post = get_object_or_404(Post, id=post_id)
+
+    try:
+        # Get the ResharedPost object for the logged-in user and the specified post
+        reshared_post = ResharedPost.objects.get(user=request.user, original_post=post)
+
+        # Delete the ResharedPost
+        reshared_post.delete()
+
+        # Update the Post model to reflect unsharing
+        post.reshared = False
+        post.reshare_count -= 1
+        post.save()
+
+        
+    except ResharedPost.DoesNotExist:
+        print( "You have not reshared this post.")
+
+    return redirect("reshare_index_post", post_id=post_id)
 
 
 
@@ -438,6 +527,48 @@ def delete_post(request, post_id):
             return redirect('my_profile')  # Change 'my_profile' to the appropriate URL name
     except Post.DoesNotExist:
         raise Http404("Post does not exist.")
+
+
+
+
+
+
+
+@login_required
+def follow_user(request):
+    if request.method == "POST":
+        follow_form = FollowForm(request.POST)
+        if follow_form.is_valid():
+            user_to_follow_id = follow_form.cleaned_data.get('user_to_follow')
+            user_to_follow = User.objects.get(pk=user_to_follow_id)
+
+            if user_to_follow == request.user:
+                # Prevent following oneself
+                raise Http404("Invalid request")
+
+            if user_to_follow in request.user.following.all():
+                # User is already following, so unfollow
+                request.user.following.remove(user_to_follow)
+                user_to_follow.followers.remove(request.user)
+            else:
+                # User is not following, so follow
+                request.user.following.add(user_to_follow)
+                user_to_follow.followers.add(request.user)
+
+            # Update the following and follower counts
+            request.user.save()
+            user_to_follow.save()
+
+            # Render the user_profile page of the user they followed or unfollowed
+            return render(request, 'social_network/user_profile.html', {
+                'user': user_to_follow,
+                'follow_form': follow_form,
+            })
+
+    # Handle other cases or errors here if needed
+    raise Http404("Invalid request")
+
+
 
 
 
@@ -526,23 +657,6 @@ def update_bio(request):
 
 
 
-@login_required(login_url='login')
-def create_post(request):
-    user = request.user
-    
-    if request.method == 'POST':
-        form = PostForm(request.POST)
-        if form.is_valid():
-            post = form.save(commit=False)
-            post.author = user
-            post.save()
-
-            # Extract mentions from the post content
-            mentioned_users = find_mentions(post.content)
-
-            # Save mentions in the Mention model
-            for mentioned_user in mentioned_users:
-                Mention.objects.create(post=post, user=user)
 
 
         
@@ -640,12 +754,18 @@ def display_index_posts(request):
 def reshare_index_post(request, post_id):
     post_to_reshare = get_object_or_404(Post, id=post_id)
 
-    if ResharedPost.objects.filter(user=request.user, original_post=post_to_reshare).exists():
-        return redirect('index')
+    # Check if the user has already reshared the post
+    reshared_entry = ResharedPost.objects.filter(user=request.user, original_post=post_to_reshare).first()
 
-    ResharedPost.objects.create(user=request.user, original_post=post_to_reshare)
-    post_to_reshare.mark_as_reshared()
-    post_to_reshare.increase_reshare_count()
+    if reshared_entry:
+        # User has already reshared, so unshare
+        reshared_entry.delete()
+        
+    else:
+        # User hasn't reshared, so reshare
+        ResharedPost.objects.create(user=request.user, original_post=post_to_reshare)
+        post_to_reshare.mark_as_reshared()
+        post_to_reshare.increase_reshare_count()
 
     return redirect('index')
 
@@ -755,17 +875,20 @@ def user_profile(request, username):
 def reshare_user_profile_post(request, post_id):
     post_to_reshare = get_object_or_404(Post, id=post_id)
 
-    if ResharedPost.objects.filter(user=request.user, original_post=post_to_reshare).exists():
-        # Redirect to the user_profile with the appropriate username
-        return redirect(reverse('user_profile', args=[request.user.username]))
+    # Check if the user has already reshared the post
+    reshared_entry = ResharedPost.objects.filter(user=request.user, original_post=post_to_reshare).first()
 
-    ResharedPost.objects.create(user=request.user, original_post=post_to_reshare)
-    post_to_reshare.mark_as_reshared()
-    post_to_reshare.increase_reshare_count()
+    if reshared_entry:
+        # User has already reshared, so unshare
+        reshared_entry.delete()
+        
+    else:
+        # User hasn't reshared, so reshare
+        ResharedPost.objects.create(user=request.user, original_post=post_to_reshare)
+        
 
-    # Redirect to the user_profile with the appropriate username
-    return redirect(reverse('user_profile', args=[request.user.username]))
-
+    # Redirect to the user_profile with the appropriate username (original post author)
+    return redirect(reverse('user_profile', args=[post_to_reshare.author.username]))
 
 
 
@@ -967,7 +1090,6 @@ def change_username(request):
             else:
                 # Save the changes only if the password is correct
                 form.save()
-                messages.success(request, 'Username changed successfully.')
 
             return render(request, 'social_network/change_username.html', {'form': form})
     else:
@@ -992,7 +1114,6 @@ def terms_of_service(request):
 
 def privacy_policy(request):
     return render(request, 'social_network/privacy_policy.html')
-
 
 
 
@@ -1026,12 +1147,17 @@ def notifications(request):
         liked_users_created=F('created')  # Use the 'created' field of Comment
     ).values('id', 'num_likes', 'liked_users_username', 'liked_users_profile_photo', 'liked_users_created')
 
-    # Calculate the count of unseen notifications
-    unseen_notification_count = Mention.objects.filter(user=request.user, seen=False).count()
-    print(f"DEBUG: unseen_notification_count={unseen_notification_count}")
+    
+    # Get new followers
+    new_followers = User.objects.filter(following=request.user)
 
-    # Mark all notifications as seen after calculating the count
-    Mention.objects.filter(user=request.user, seen=False).update(seen=True)
+    # Calculate the count of unseen notifications
+    unseen_notification_count = len(post_mentions) + len(comment_mentions) + len(user_post_likes) + len(user_comment_likes)
+
+    print(unseen_notification_count)
+      
+    # Pass the unseen_notification_count to the notification_count view
+    request.unseen_notification_count = unseen_notification_count
 
     return render(request, 'social_network/notifications.html', {
         'unseen_notification_count': unseen_notification_count,
@@ -1039,8 +1165,30 @@ def notifications(request):
         'comment_mentions': comment_mentions,
         'user_post_likes': user_post_likes,
         'user_comment_likes': user_comment_likes,
+        'new_followers': new_followers,
     })
 
+
+
+
+
+@login_required
+def reset_notification_count(request):
+    # Reset the count in the database
+    unseen_notification_count = Count(
+        F('post_mentions') + F('comment_mentions') + F('user_post_likes') + F('user_comment_likes') + F('new_followers'),
+        Value(0)
+    )
+    unseen_notification_count = 0
+    
+    return JsonResponse({'success': True})
+
+
+@login_required
+def notification_count(request):
+    # Retrieve the unseen_notification_count passed from the notifications view
+    unseen_notification_count = getattr(request, 'unseen_notification_count', 0)
+    return render(request, 'social_network/notification_count.html', {'unseen_notification_count': unseen_notification_count})
 
 
 
@@ -1117,6 +1265,9 @@ def delete_account(request):
         return redirect('index')  # Redirect to the home page or wherever you want
 
     return render(request, 'social_network/delete_account.html')
+
+
+
 
 
 def save_department(request):

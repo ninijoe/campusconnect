@@ -145,11 +145,7 @@
 <div class="container mt-5">
     <h2 class="mb-4">Posts</h2>
     <!-- Separate "Create Post" form -->
-    <form method="post" action="{% url 'create_post' %}">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit" class="btn btn-primary">Create Post</button>
-    </form>
+    
     
     <br>
     
@@ -219,9 +215,10 @@
                                 <label for="comment_text">Your Comment:</label>
                                 <input type="text" id="comment_text" name="text" class="form-control" placeholder="Write your comment here" required>
                             </div>
-                            <!-- Icon button for adding a comment -->
                             <a href="{% url 'create_comment' post_id=post.id %}" class="btn btn-primary">
-                                <i class="fas fa-comment" style="font-size: 18px;"></i>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-comment" style="font-size: 18px;"></i>
+                                </button>
                             </a>                        
                         </form>
                         <br>
