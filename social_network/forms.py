@@ -76,25 +76,18 @@ class PostForm(forms.ModelForm):
         fields = ['content']
 
     content = forms.CharField(
-        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': '4', 'placeholder': 'Write your post here...'}),
+        widget=forms.Textarea(attrs={'class': 'form-control with-icon', 'rows': '4', 'placeholder': 'Write your post here...'}),
         label='',
     )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['content'].widget = forms.Textarea(
-            attrs={'class': 'form-control', 'rows': '4', 'placeholder': 'Write your post here...'}
-        )
-
-        # Add a camera icon to the widget
-        self.fields['content'].widget.attrs.update({
-            'class': 'form-control with-icon',
-            'style': 'position: relative;',
-        })
 
     def as_p_with_icon(self):
-        return mark_safe('<i class="fas fa-camera" style="position: relative; right: 25%; top: 36%; z-index: 1;"></i>' + str(self.as_p()))
-
+        return mark_safe('<div style="position: relative;">' +
+                         '<i class="fas fa-camera" style="position: absolute; right: 10px; top: 80px; color:grey; z-index: 1;"></i>' +
+                         str(self) +
+                         '</div>')
 
 class CommentForm(forms.ModelForm):
     class Meta:

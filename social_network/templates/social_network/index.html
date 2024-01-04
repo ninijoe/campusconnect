@@ -19,20 +19,24 @@
 </div>
 <!-- Post Creation Form -->
 <div class="mb-3" id="post-creation-form">
-    <form method="post" action="{% url 'create_post' %}">
-        {% csrf_token %}
-        {{ form.as_p_with_icon }}
-        <button type="submit" class="btn btn-primary">            
-            <i class="fas fa-comment" style="font-size: 18px;"></i>
-        </button>
-    </form>
+    <div class="mb-3" id="post-creation-form">
+        <form method="post" action="{% url 'create_post' %}">
+            {% csrf_token %}
+            {{ form.as_p_with_icon }}
+            <br>
+            <button type="submit" class="btn btn-primary">            
+                <i class="fas fa-comment" style="font-size: 18px;"></i>
+            </button>
+        </form>
+    </div>
+    
 </div>
 <div class="container" style="margin-top: 30px;">
     <div class="row">
         <div class="col-md-13 offset-md-0.3">
             
                     {% for post in posts %}
-                        <div class="card mb-3" style="border: 1.5px solid #ccc;  margin-left: 0px; margin-right: -0px; width: 120%; max-width: none;">
+                        <div class="card mb-3" style="border: 1.5px solid #ccc;  margin-left: 0px; margin-right: -0px; width: 128%; max-width: none;">
                             <div class="card-header">
                                 {% if post.is_reshared %}
                                     
