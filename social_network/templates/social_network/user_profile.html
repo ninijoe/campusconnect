@@ -31,10 +31,11 @@
                         {% if user_profile == request.user %}
                             {# This is the user's own profile, so don't render the form #}
                         {% else %}
-                            <form method="post" action="{% url 'block_user' user_profile.username %}">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-danger mt-3">Block</button>
-                            </form>
+                        <form method="post" action="{% if user_profile.username %}{% url 'user_profile' user_profile.username %}{% endif %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger mt-3">Block</button>
+                        </form>
+                        
                         {% endif %}
 
                     </div>
