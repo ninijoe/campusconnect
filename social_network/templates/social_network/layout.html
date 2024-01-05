@@ -47,7 +47,7 @@
     <nav class="navbar navbar-expand-md navbar-dark bg-dark" style="height: 70px;">
         <div class="container-fluid">
             <div class="navbar-collapse" id="navbarNav">
-                
+                {% if user.is_authenticated %}
                 <ul class="navbar-nav ml-auto">
                     <!-- Add your navigation links here -->
                     <li class="nav-item">
@@ -92,6 +92,17 @@
                     </li>
                     <!-- Add more navigation links as needed -->
                 </ul>
+                {% else %}
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item">
+                        <a href="{% url 'signup' %}" class="nav-link">Sign Up</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url 'login' %}" class="nav-link">Login</a>
+                    </li>
+                </ul>
+            
+                {% endif %}
             </div>
         </div>
     </nav>
@@ -100,11 +111,14 @@
     <div class="content" style="background-color: rgb(251, 245, 245); width: 80%; position: absolute; top: 116px; left: 0%; bottom: 0; overflow: hidden;">
     <!-- Content navbar -->
     <div class="content-navbar" style="background-color: #c5d1dd; color: white; padding: 10px; height: 2.5rem; border: 1px solid black; font-weight: bold;">
+        {% if user.is_authenticated %}
         <h1 style="font-weight: bold; font-size: 20px;  color: rgb(8, 7, 7); margin-top: 0px;">
                     Welcome @{{ request.user.username }}
-                </h1>
+                
+        </h1>
+        {% endif %} 
         <div class="content-text" style="color: rgb(25, 23, 23);">
-            
+           
             {% block content_title %}
                 <!-- Add content title here -->
             {% endblock %}

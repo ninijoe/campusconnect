@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,8 +10,12 @@
 
     <div class="container">
         <div class="text-center">
-            <h1 class="display-3" style="color: #3498db; font-size: 5rem; font-weight: bold;">CampusConnect</h1>
-            <p class="lead" style="color: #f8fbf9; font-size: 2rem; font-weight: bold;">For VIU staff and students</p>
+            <div>
+                <img src="{% static 'images/logo.png' %}" alt="CampusConnect Logo" style="max-width: 100%; height: auto;">
+                <h1 class="display-3" style="color: #3498db; font-size: 5rem; font-weight: bold; display: none;">CampusConnect</h1>
+            </div>
+            
+            <p class="lead" style="color: #f8fbf9; font-size: 2rem; font-weight: bold; text-shadow: -2px -2px 2px #000, 2px -2px 2px #000, -2px 2px 2px #000, 2px 2px 2px #000;">For VIU staff and students</p>
 
             <form action="{% url 'signup' %}" method="post" class="custom-form">
                 {% csrf_token %}
@@ -32,20 +37,28 @@
                     
                     <input class="form-control form-control-lg" type="password" id="confirm_password" name="confirmation" placeholder="Confirm Password" required>
                 </div>
+                
                 <!-- Agree to Terms of Service checkbox in a banner -->
                 <div class="alert alert-info">
                     <input class="form-check-input" type="checkbox" id="agree_to_terms" name="agree_to_terms" required>
                     <label class="form-check-label font-weight-bold" for="agree_to_terms">
-                        I agree to the <a href="{% url 'terms_of_service' %}" class="text-primary">Terms of Service</a>
+                       By clicking this, I agree to the <a href="{% url 'terms_of_service' %}" class="text-primary">Terms of Service</a>
                     </label>
                 </div>
 
-
-                <button class="btn btn-primary btn-lg btn-block" type="submit">Sign Up - Please ensure you save your login credentials in a safe folder as there is no account recovery option currently</button>
-                
-                <!-- Add "already have an account? login here" link -->
-                <p class="font-weight-bold" class="mt-1" style="color: aliceblue; font-size: 30px;">Already have an account? <a href="{% url 'login' %}" class="text-primary font-weight-bold">Login here</a></p>
-            </form>
+                <p class="btn btn-danger btn-lg btn-block"> NOTE: Please ensure you save your signup credentials as there are currently no account recovery options</p>
+                <br>
+                <div class="row">
+                    <div class="col-md-6"> <!-- Adjust the column width as needed -->
+                        <button class="btn btn-primary btn-lg btn-block" type="submit">Sign Up</button>
+                    </div>
+                    <div class="col-md-6"> <!-- Adjust the column width as needed -->
+                        <p class="font-weight-bold mt-1" style="color: aliceblue; font-size: 30px;">
+                            <a href="{% url 'login' %}" class="btn btn-primary btn-lg font-weight-bold btn-block">Already have an account? Login here</a>
+                        </p>
+                    </div>
+                </div>
+                           </form>
         </div>
     </div>
 </body>

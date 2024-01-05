@@ -152,6 +152,15 @@ def index(request):
     form = PostForm()  # Include the form for creating a new post
 
     if request.method == "POST":
+        # Check the age
+        birthday_year = int(request.POST['birthday_year'])
+        current_year = datetime.now().year
+        age = current_year - birthday_year
+
+        if age < 13:
+            # Reject users under 13
+            return render(request, 'signup.html', {'error_message': 'You must be at least 13 years old to sign up.'})
+
         # Check if the form is a signup form
         if 'signup' in request.POST:
             signup_form = SignupForm(request.POST)

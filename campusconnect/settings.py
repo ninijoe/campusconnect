@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 
 from pathlib import Path
 import os
+from django.utils.translation import gettext_lazy as _
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -155,3 +156,31 @@ CSP_HEADER = {
     'script-src': ["'self'", 'https://cdn.example.com'],
     # Add other directives as needed
 }
+
+USE_I18N = True
+
+LANGUAGES = [
+    ('en', _('English')),
+    ('es', _('Spanish')),
+    ('fr', _('French')),
+    ('de', _('German')),
+    ('it', _('Italian')),
+    ('pt', _('Portuguese')),
+    ('ru', _('Russian')),
+    ('ja', _('Japanese')),
+    ('ko', _('Korean')),
+    ('zh-hans', _('Simplified Chinese')),
+    ('zh-hant', _('Traditional Chinese')),
+    ('hi', _('Hindi')),
+    ('ar', _('Arabic')),
+    ('th', _('Thai')),
+    ('vi', _('Vietnamese')),
+    # Add more languages as needed
+]
+
+
+LANGUAGE_CODE = 'en'
+
+LOCALE_PATHS = [
+    os.path.join(BASE_DIR, 'locale'),
+]
