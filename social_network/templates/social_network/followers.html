@@ -3,7 +3,7 @@
 
 {% block main_content %}
 
-<div class="content" style="background: linear-gradient(to bottom, rgb(251, 245, 245), rgb(240, 230, 230), rgb(230, 220, 220), rgb(220, 210, 210)); position: relative; top: 20px;">
+<div class="content" style="background: white; position: relative; top: 20px;">
     <h1>Followers of {{ user.username }}</h1>
     <div class="row row-cols-1 row-cols-md-4" style="max-width: 95%;">
         {% for follower in followers %}
@@ -14,7 +14,17 @@
                     </div>
                     <div class="card-body">
                         <h3 class="card-title" style="font-size: 1rem;"><a href="{% url 'user_profile' follower.username %}">@{{ follower.username }}</a></h3>
-                        <p class="card-text" style="font-size: 0.8rem; font-weight: bold; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ follower.first_name|title }} <span></span> {{ follower.last_name|title }}</p>
+                        <form method="post" action="{% url 'follow_user' user.username %}" class="mr-3">
+                            {% csrf_token %}
+                            <input type="hidden" name="user_to_follow" value="{{ user.id }}">
+                            {% if user != request.user %}
+                                {% if user in request.user.following.all %}
+                                    <button type="submit" class="btn btn-danger mt-3">Unfollow</button><br>
+                                {% else %}
+                                    <button type="submit" class="btn btn-primary mt-3">Follow</button>
+                                {% endif %}
+                            {% endif %}
+                        </form>                
                     </div>
                 </div>
             </div>

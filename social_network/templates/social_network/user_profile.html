@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block main_content %}
-<div class="content" style="background: linear-gradient(to bottom, rgb(251, 245, 245), rgb(240, 230, 230), rgb(230, 220, 220), rgb(220, 210, 210)); position: relative; top: 20px;">
+<div class="content" style="background: white; position: relative; top: 20px;">
     <div class="container mt-1">
         <div class="row">
             <div class="col-md-4">
@@ -15,7 +15,7 @@
                         {% endif %}
                     </div>
                     <div class="d-flex justify-content-center">
-                        <form method="post" action="{% url 'follow_user' %}" class="mr-3">
+                        <form method="post" action="{% url 'follow_user' user.username %}" class="mr-3">
                             {% csrf_token %}
                             <input type="hidden" name="user_to_follow" value="{{ user.id }}">
                             {% if user != request.user %}
@@ -97,19 +97,26 @@
                             <!-- Add other form fields here -->
                         </div>
                     </form>
-                    <a href="{% url 'followers' username=user.username %}" style="text-decoration: none;">
-                        <div class="followers" style="margin-top: 15px;">
-                            <strong style="font-size: 18px; color: #333;">Followers:</strong>
-                            <span class="badge badge-primary" style="font-size: 16px;">{{ user.followers.count }}</span>
-                        </div>
-                    </a>
+                    <div class="col-md-6">
+                        {% if user_profile %}
+                            <div class="followers" style="margin-top: 15px;">
+                                <strong style="font-size: 18px; color: #333;">
+                                    <a href="{% url 'followers' username=user_profile.username %}">Followers</a>
+                                </strong>
+                                <span class="badge badge-primary" style="font-size: 16px;">{{ user_profile.followers.count }}</span>
+                            </div>
+                            
+                            <div class="following" style="margin-top: 10px;">
+                                <strong style="font-size: 18px; color: #333;">
+                                    <a href="{% url 'followings' username=user_profile.username %}">Followings</a>
+                                </strong>
+                                <span class="badge badge-primary" style="font-size: 16px;">{{ user_profile.following.count }}</span>
+                            </div>
+                        {% else %}
+                            
+                        {% endif %}
+                    </div>
                     
-                    <a href="{% url 'followings' username=user.username %}" style="text-decoration: none;">
-                        <div class="following" style="margin-top: 10px;">
-                            <strong style="font-size: 18px; color: #333;">Following:</strong>
-                            <span class="badge badge-primary" style="font-size: 16px;">{{ user.following.count }}</span>
-                        </div>
-                    </a>
                 </div>
                 <div class="card mt-4">
                     <div class="card-body">

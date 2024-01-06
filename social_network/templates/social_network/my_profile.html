@@ -98,16 +98,20 @@
                         </div>
                         <div class="col-md-6">
                             <div class="followers" style="margin-top: 15px;">
-                                <strong style="font-size: 18px; color: #333;">Followers:</strong>
+                                <strong style="font-size: 18px; color: #333;">
+                                    <a href="{% url 'followers' username=user.username %}">Followers</a>
+                                </strong>
                                 <span class="badge badge-primary" style="font-size: 16px;">{{ user.followers.count }}</span>
                             </div>
                             
                             <div class="following" style="margin-top: 10px;">
-                                <strong style="font-size: 18px; color: #333;">Following:</strong>
+                                <strong style="font-size: 18px; color: #333;">
+                                    <a href="{% url 'followings' username=user.username %}">Following</a>
+                                </strong>
                                 <span class="badge badge-primary" style="font-size: 16px;">{{ user.following.count }}</span>
                             </div>
-                            
                         </div>
+                        
                     </div>
 
                     <!-- ... (other form fields) ... -->

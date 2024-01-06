@@ -9,7 +9,7 @@ from .views import terms_of_service, privacy_policy
 from .views import delete_account_view
 from .views import like_comment
 from .views import display_index_posts, reshare_index_post, delete_post
-
+from .views import follow_user
 
 
 
@@ -72,7 +72,7 @@ urlpatterns = [
     
     path('user/<str:username>/', views.user_profile, name='user_profile'),
 
-    path('follow_user/', views.follow_user, name='follow_user'),
+    path('follow_user/<str:username>/', views.follow_user, name='follow_user'),
 
     path('<str:username>/followers/', views.followers, name='followers'),
     

@@ -3,7 +3,7 @@
 
 {% block main_content %}
 
-<div class="content" style="background: linear-gradient(to bottom, rgb(251, 245, 245), rgb(240, 230, 230), rgb(230, 220, 220), rgb(220, 210, 210)); width: 800px; position: absolute; top: 60px; left: 6%; bottom: 0; overflow-y: auto;">
+<div class="content" style="background: white; rgb(220, 210, 210)); width: 800px; position: absolute; top: 60px; left: 6%; bottom: 0; overflow-y: auto;">
  
     <h1>All Users</h1>
     <!-- Search Bar -->
@@ -27,7 +27,7 @@
                     </div>
                     <div class="card-body">
                         <a href="{% url 'user_profile' user.username %}" style="font-weight: bold;">@{{ user.username }}</a>
-                        <form method="post" action="{% url 'follow_user' %}" class="mr-3">
+                        <form method="post" action="{% url 'follow_user' user.username %}" class="mr-3">
                             {% csrf_token %}
                             <input type="hidden" name="user_to_follow" value="{{ user.id }}">
                             {% if user != request.user %}
