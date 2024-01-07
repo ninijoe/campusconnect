@@ -3,46 +3,69 @@
 
 {% block main_content %}
 
-<div class="content" style="background: white; rgb(220, 210, 210)); width: 800px; position: absolute; top: 60px; left: 6%; bottom: 0; overflow-y: auto;">
+<div class="content" style="background: white; rgb(220, 210, 210); width: 800px; position: absolute; top: 60px; left: 6%; bottom: 0; overflow-y: auto;">
  
-    <h1>All Users</h1>
+    <h1>Discover Others </h1>
+    <br>
     <!-- Search Bar -->
-    <form method="GET" action="{% url 'discover' %}" class="mb-3" style="max-width: 300px;">
+    <form method="GET" action="{% url 'discover' %}" class="mb-3 fixed-search-bar" style="max-width: 300px;">
         <div class="input-group">
-            <input type="text" name="search" placeholder="Search by username" class="form-control">
+            <input type="text" name="search" placeholder="Search name or username" class="form-control">
             <div class="input-group-append">
                 <button type="submit" class="btn btn-primary">Search</button>
             </div>
         </div>
     </form>
+    <br>
 
     <!-- Display a list of users with links to their profiles -->
-    
-    <div class="row row-cols-1 row-cols-md-4" style="max-width: 95%;">
-        {% for user in all_users %}
-            <div class="col mb-3">
-                <div class="card" style="border: 1.5px solid black;">
-                    <div class="card-img-top" style="height: 180px; overflow: hidden;">
-                        <img src="{% if user.profile_photo %}{{ user.profile_photo.url }}{% else %}{% static 'path_to_default_image.jpg' %}{% endif %}" alt="{{ user.username }} Profile Picture" style="width: 100%;">
-                    </div>
-                    <div class="card-body">
-                        <a href="{% url 'user_profile' user.username %}" style="font-weight: bold;">@{{ user.username }}</a>
-                        <form method="post" action="{% url 'follow_user' user.username %}" class="mr-3">
-                            {% csrf_token %}
-                            <input type="hidden" name="user_to_follow" value="{{ user.id }}">
-                            {% if user != request.user %}
-                                {% if user in request.user.following.all %}
-                                    <button type="submit" class="btn btn-danger mt-3">Unfollow</button><br>
+    <div class="container" style="margin-left: 0;">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Profile Photo</th>
+                    <th>Username</th>
+                    <th>Followers</th>
+                    <th>Following</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in all_users %}
+                    <tr>
+                        <td>
+                            <div class="profile-photo-container">
+                                {% if user.profile_photo %}
+                                    <img src="{{ user.profile_photo.url }}" alt="{{ user.username }} Profile Photo" class="img-fluid" style="width: 50px; height: 50px; object-fit: cover;">
                                 {% else %}
-                                    <button type="submit" class="btn btn-primary mt-3">Follow</button>
+                                    <i class="fas fa-user-circle fa-2x text-secondary" id="profile-photo-placeholder"></i>
                                 {% endif %}
-                            {% endif %}
-                        </form>
-                    </div>
-                </div>
-            </div>
-        {% endfor %}
+                            </div>
+                        </td>
+                        <td>
+                            <a href="{% url 'user_profile' user.username %}" style="font-weight: bold;">@{{ user.username }}</a>
+                        </td>
+                        <td>{{ user.followers.count }}</td>
+                        <td>{{ user.following.count }}</td>
+                        <td>
+                            <form method="post" action="{% url 'follow_user' user.username %}" class="mr-3">
+                                {% csrf_token %}
+                                <input type="hidden" name="user_to_follow" value="{{ user.id }}">
+                                {% if user != request.user %}
+                                    {% if user in request.user.following.all %}
+                                        <button type="submit" class="btn btn-danger">Unfollow</button>
+                                    {% else %}
+                                        <button type="submit" class="btn btn-primary">Follow</button>
+                                    {% endif %}
+                                {% endif %}
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
+    
 </div>
 <style>
     .card-img-top {

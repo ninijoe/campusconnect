@@ -5,31 +5,54 @@
 
 <div class="content" style="background: white; position: relative; top: 20px;">
     <h1>@{{ user.username }} follows</h1>
-    <div class="row row-cols-1 row-cols-md-4" style="max-width: 95%;">
-        {% for following in followings %}
-            <div class="col mb-3">
-                <div class="card" style="border: 1.5px solid black;">
-                    <div class="card-img-top" style="height: 180px; overflow: hidden;">
-                        <img src="{% if following.profile_photo %}{{ following.profile_photo.url }}{% else %}{% static 'path_to_default_image.jpg' %}{% endif %}" alt="{{ following.username }} Profile Picture" style="width: 100%;">
-                    </div>
-                    <div class="card-body">
-                        <h3 class="card-title" style="font-size: 1rem;"><a href="{% url 'user_profile' following.username %}">@{{ following.username }}</a></h3>
-                        <form method="post" action="{% url 'follow_user' user.username %}" class="mr-3">
-                            {% csrf_token %}
-                            <input type="hidden" name="user_to_follow" value="{{ user.id }}">
-                            {% if user != request.user %}
-                                {% if user in request.user.following.all %}
-                                    <button type="submit" class="btn btn-danger mt-3">Unfollow</button><br>
-                                {% else %}
-                                    <button type="submit" class="btn btn-primary mt-3">Follow</button>
-                                {% endif %}
-                            {% endif %}
-                        </form>                  
-                    </div>
-                    
-                </div>
-            </div>
-        {% endfor %}
+    <div class="content" style="background: white; position: relative; top: 20px;">
+        <h1>@{{ user.username }} follows</h1>
+        <div class="container">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Profile Photo</th>
+                        <th>Username</th>
+                        <th>Followers</th>
+                        <th>Following</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for following in followings %}
+                        <tr>
+                            <td>
+                                <div class="profile-photo-container">
+                                    {% if following.profile_photo %}
+                                        <img src="{{ following.profile_photo.url }}" alt="{{ following.username }} Profile Photo" class="img-fluid" style="width: 50px; height: 50px; object-fit: cover;">
+                                    {% else %}
+                                        <i class="fas fa-user-circle fa-2x text-secondary" id="profile-photo-placeholder"></i>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td>
+                                <a href="{% url 'user_profile' following.username %}" style="font-weight: bold;">@{{ following.username }}</a>
+                            </td>
+                            <td>{{ following.followers.count }}</td>
+                            <td>{{ following.following.count }}</td>
+                            <td>
+                                <form method="post" action="{% url 'follow_user' following.username %}" class="mr-3">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="user_to_follow" value="{{ following.id }}">
+                                    {% if following != request.user %}
+                                        {% if following in request.user.following.all %}
+                                            <button type="submit" class="btn btn-danger">Unfollow</button>
+                                        {% else %}
+                                            <button type="submit" class="btn btn-primary">Follow</button>
+                                        {% endif %}
+                                    {% endif %}
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
     
 </div>
