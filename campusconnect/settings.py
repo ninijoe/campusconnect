@@ -159,28 +159,9 @@ CSP_HEADER = {
 
 USE_I18N = True
 
-LANGUAGES = [
-    ('en', _('English')),
-    ('es', _('Spanish')),
-    ('fr', _('French')),
-    ('de', _('German')),
-    ('it', _('Italian')),
-    ('pt', _('Portuguese')),
-    ('ru', _('Russian')),
-    ('ja', _('Japanese')),
-    ('ko', _('Korean')),
-    ('zh-hans', _('Simplified Chinese')),
-    ('zh-hant', _('Traditional Chinese')),
-    ('hi', _('Hindi')),
-    ('ar', _('Arabic')),
-    ('th', _('Thai')),
-    ('vi', _('Vietnamese')),
-    # Add more languages as needed
-]
 
+"""ALLOWED_SCHOOL_EMAIL_PATTERNS = {
+    'VIU': r'^VIUD2L_\d{7}@d2l\.viu\.ca$',
+    # Add more patterns for other schools as needed
+} """
 
-LANGUAGE_CODE = 'en'
-
-LOCALE_PATHS = [
-    os.path.join(BASE_DIR, 'locale'),
-]

@@ -6,6 +6,12 @@ from django.contrib.auth.forms import UserChangeForm , PasswordChangeForm
 from django.contrib.auth import authenticate
 from django.contrib.auth.forms import PasswordResetForm
 from django.utils.safestring import mark_safe
+from .models import Group
+
+class GroupForm(forms.ModelForm):
+    class Meta:
+        model = Group
+        fields = ['name', 'bio']
 
 
 DEPARTMENT_CHOICES = [

@@ -28,7 +28,7 @@ from .models import Post , Comment , Mention, Message, ResharedPost
 from .forms import PostForm , FollowForm , CommentForm , ProfilePhotoForm, PostMediaForm
 from django.db.models import F
 from django.contrib import messages
-from .models import User
+from .models import User , Group
 from datetime import datetime
 from django.http import HttpResponseServerError
 from django.utils import timezone
@@ -44,8 +44,12 @@ from operator import attrgetter
 from django.http import JsonResponse
 from django.db.models.functions import Coalesce
 from django.db.models import Count, F, Value
-
-
+from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
+from django.conf import settings
+from django.core.mail import send_mail
+from .forms import GroupForm
+from .models import Group
 
 @login_required
 def change_email(request):
@@ -764,6 +768,12 @@ def display_index_posts(request):
 
 
 
+
+
+
+
+
+
 @login_required
 def reshare_index_post(request, post_id):
     post_to_reshare = get_object_or_404(Post, id=post_id)
@@ -782,6 +792,11 @@ def reshare_index_post(request, post_id):
         post_to_reshare.increase_reshare_count()
 
     return redirect('index')
+
+
+
+
+
 
 
 
@@ -815,6 +830,11 @@ def display_my_profile_posts(request):
 
     context = {'posts': all_posts}
     return render(request, 'social_network/my_profile.html', context)
+
+
+
+
+
 
 
 
@@ -855,6 +875,13 @@ def display_user_profile_posts(request, username):
 
 
 
+
+
+
+
+
+
+
 @login_required
 def user_posts(request, username):
     # Call the display_user_profile_posts function to get the context
@@ -862,6 +889,11 @@ def user_posts(request, username):
 
     # Render the user_profile.html template using the context
     return render(request, 'social_network/user_profile.html', context)
+
+
+
+
+
 
 
 
@@ -880,6 +912,10 @@ def user_profile(request, username):
 
     # Render the user_profile.html template using the combined context
     return render(request, 'social_network/user_profile.html', context)
+
+
+
+
 
 
 
@@ -906,10 +942,19 @@ def reshare_user_profile_post(request, post_id):
 
 
 
+
+
+
+
+
+
 @login_required
 def discover(request):
-    # Retrieve all users excluding the current user
-    all_users = User.objects.exclude(id=request.user.id)
+    # Retrieve all users, including the current user
+    all_users = User.objects.all()
+
+    # Get the count of all users
+    all_users_count = all_users.count()
 
     # Get the search query from the request
     search_query = request.GET.get('search', '')
@@ -927,8 +972,103 @@ def discover(request):
             Q(last_name__icontains=search_query)
         )
 
+    context = {
+        'all_users': all_users , 
+        'all_users_count': all_users_count
+    }
+
     # Render the template with the filtered queryset
-    return render(request, 'social_network/discover.html', {'all_users': all_users})
+    return render(request, 'social_network/discover.html', context)
+
+
+
+
+
+
+
+
+
+@login_required
+def search_group(request):
+    # Retrieve all groups
+    all_groups = Group.objects.all()
+
+    # Get the count of all groups
+    all_groups_count = all_groups.count()
+
+    # Get the search query from the request
+    search_query = request.GET.get('search', '')
+
+    # Apply additional filtering based on group name and bio
+    if search_query:
+        all_groups = all_groups.filter(
+            Q(name__icontains=search_query) |
+            Q(bio__icontains=search_query)
+        )
+
+    context = {
+        'groups': all_groups,
+        'all_groups_count': all_groups_count
+    }
+
+    # Render the template with the filtered queryset
+    return render(request, 'social_network/search_group.html', context)
+
+
+
+
+
+
+
+
+
+@login_required
+def groups(request):
+    # Retrieve all groups
+    all_groups = Group.objects.all()
+
+    context = {
+        'groups': all_groups,
+    }
+
+    # Render the template with the queryset of all groups
+    return render(request, 'social_network/groups.html', context)
+
+
+
+
+
+
+
+
+@login_required
+def create_group(request):
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        bio = request.POST.get('bio')
+
+        # Assuming the creator is the current logged-in user
+        creator = request.user
+
+        # Create the group
+        group = Group.objects.create(name=name, creator=creator, bio=bio)
+
+        # Add the creator as a member and moderator
+        group.members.add(creator)
+        group.moderators.add(creator)
+
+        return redirect('groups')
+
+    return render(request, 'social_network/create_group.html')
+
+
+
+
+
+@login_required
+def view_group(request, group_id):
+    group = get_object_or_404(Group, id=group_id)
+    return render(request, 'social_network/view_group.html', {'group': group})
 
 
 
@@ -1030,6 +1170,7 @@ def signup(request):
     if request.method == "POST":
         username = request.POST["username"]
         email = request.POST["email"]
+        #student_email = request.POST["student_email"]
         password = request.POST["password"]
         confirmation = request.POST["confirmation"]
 
@@ -1045,13 +1186,36 @@ def signup(request):
                 "message": "Please agree to the Terms of Service."
             })
 
+        """# Validate student_email format
+        try:
+            validate_email(student_email)
+
+            # Check student_email against allowed patterns
+            valid_email_format = any(
+                student_email.lower().endswith(pattern) for pattern in settings.ALLOWED_SCHOOL_EMAIL_PATTERNS.values()
+            )
+
+            if not valid_email_format:
+                raise ValidationError("Invalid student email format.")
+        except ValidationError:
+            return render(request, "social_network/signup.html", {
+                "message": "Invalid student email format."
+            })"""
+
         try:
             user = User.objects.create_user(username, email, password)
+            #user.student_email = student_email
             user.save()
+            """# Send verification email
+            send_mail(
+                'Verify Your Email',
+                'We have sent you an email with a verification link. Click the link to complete the signup process.',
+                'your@gmail.com',  # Sender's email (use the Gmail configured in settings)
+                [email],
+                fail_silently=False,
+            )"""
             login(request, user)
-            return render(request, 'social_network/discover.html', {
-                "show_content": True
-            })
+            return redirect ('discover')
         except IntegrityError:
             return render(request, "social_network/signup.html", {
                 "message": "Username or email already taken."
@@ -1203,23 +1367,7 @@ def notification_count(request):
 
 
 
-
-def delete_account_view(request):
-    if request.method == 'POST' and request.user.is_authenticated:
-        # Optionally, you may want to add a confirmation step here
-
-        # Delete the user and associated information
-        user = request.user
-        user.delete()
-
-        messages.success(request, 'Your account has been deleted.')
-        return render(request, 'social_network/signup.html')  # Redirect to the signup page after deletion
-
-    elif not request.user.is_authenticated:
-        # If the user is not authenticated, redirect to the signup page
-        return render(request, 'social_network/signup.html')
-
-    return render(request, 'social_network/signup.html')  
+  
 
 
 
@@ -1260,20 +1408,21 @@ def dislike_post(request, post_id):
 
 
 
-
-
-
-# In your views.py
 @login_required
 def delete_account(request):
     if request.method == 'POST':
-        # Delete user account logic
+        # Check if the entered password matches the user's password
+        entered_password = request.POST.get('password')
         user = request.user
-        user.delete()
-        logout(request)  # Log out the user after deleting the account
-        return redirect('index')  # Redirect to the home page or wherever you want
 
-    return render(request, 'social_network/delete_account.html')
+        if user.check_password(entered_password):
+            # Password is correct, proceed to delete the account
+            user.delete()
+            logout(request)
+            return redirect('signup')
+        
+    return redirect('signup')  # Redirect to the signup page
+
 
 
 
@@ -1291,3 +1440,32 @@ def save_department(request):
     # If the form is not valid or it's a GET request, render the profile page
     form = DepartmentForm(initial={'department': request.user.department})
     return render(request, 'my_profile.html', {'form': form})
+
+
+
+def user_statistics_view(request):
+    # Total number of users
+    total_users = User.objects.all().count()
+
+    # Number of users logged in within the last 24 hours
+    login_cutoff_time = timezone.now() - timezone.timedelta(days=1)
+    active_users = User.objects.filter(last_login__gte=login_cutoff_time).count()
+
+    # Number of newly signed up users within the last 24 hours
+    signup_cutoff_time = timezone.now() - timezone.timedelta(days=1)
+    new_signups = User.objects.filter(date_joined__gte=signup_cutoff_time).count()
+
+    # Print the statistics (you can replace this with any output mechanism you prefer)
+    print(f"Total Users: {total_users}")
+    print(f"Active Users (last 24 hours): {active_users}")
+    print(f"New Signups (last 24 hours): {new_signups}")
+
+    # You can also pass these statistics to a template if you want to display them in a webpage
+    context = {
+        'total_users': total_users,
+        'active_users': active_users,
+        'new_signups': new_signups,
+    }
+
+    return render(request, 'social_network/statistics_template.html', context)
+

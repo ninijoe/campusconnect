@@ -62,7 +62,8 @@
                             <i class="fas fa-compass"></i> Discover
                         </a>
                     </li>
-                    <!-- Notifications Link -->
+                    
+
                     <li class="nav-item">
                         <a href="{% url 'notifications' %}" class="nav-link {% if request.path == '/notifications/' %}active{% endif %}" id="notifications-link">
                             <i class="fas fa-bell"></i> Notifications
@@ -72,11 +73,15 @@
                         </a>
                     </li>
                     
+                    
+                    <!-- Add this inside your navbar section -->
                     <li class="nav-item">
-                        <a href="{% url 'messages' %}" class="nav-link {% if request.path == '/messages/' %}active{% endif %}">
-                            <i class="fas fa-envelope"></i> Messages
+                        <a href="{% url 'groups' %}" class="nav-link {% if request.path == '/groups/' %}active{% endif %}">
+                            <i class="fas fa-users"></i> Groups
                         </a>
                     </li>
+
+                    
 
                     <li class="nav-item">
                         <a href="{% url 'my_profile' %}" class="nav-link {% if request.path == '/my_profile/' %}active{% endif %}">

@@ -1,0 +1,30 @@
+<!-- social_network/templates/social_network/groups.html -->
+
+{% extends "social_network/layout.html" %}
+
+{% block main_content %}
+    <h2>All Groups</h2>
+    <br>
+    <!-- Search Bar -->
+    <form method="GET" action="{% url 'search_group' %}" class="mb-3 fixed-search-bar" style="max-width: 300px;">
+            <div class="input-group">
+            <input type="text" name="search" placeholder="Search group or club" class="form-control">
+            <div class="input-group-append">
+                <button type="submit" class="btn btn-primary">Search</button>
+            </div>
+        </div>
+    </form> 
+  
+    <br>
+
+    {% if groups %}
+        <ul>
+            {% for group in groups %}
+                <li><a href="{% url 'view_group' group.id %}">{{ group.name }}</a></li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No groups found.</p>
+    {% endif %}
+  
+{% endblock %}

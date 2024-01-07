@@ -15,7 +15,7 @@ class User(AbstractUser):
     # Other fields and methods here
 
     groups = models.ManyToManyField(
-        'auth.Group',
+        'social_network.Group',
         related_name='user_groups',
         blank=True,
         help_text='The groups this user belongs to. A user will get all permissions granted to each of their groups.',
@@ -27,6 +27,7 @@ class User(AbstractUser):
         help_text='Specific permissions for this user.',
     )
 
+    student_email = models.EmailField(blank=True, null=True)
     username = models.CharField(max_length=150, unique=True)
     profile_photo = models.ImageField(upload_to='profile_photos/', null=True, blank=True)
     first_name = models.CharField(max_length=30, blank=True)
@@ -73,6 +74,38 @@ class User(AbstractUser):
     def get_public_key(self):
         return self.public_key
     
+
+
+
+
+class Group(models.Model):
+    name = models.CharField(max_length=255, unique=True, default='')
+    bio = models.TextField(blank=True)
+    creator = models.ForeignKey(
+        'social_network.User',
+        on_delete=models.CASCADE,
+        related_name='created_groups',
+        null=True,
+        blank=True,
+        help_text='The user who created the group.'
+    )
+    members = models.ManyToManyField(
+        'social_network.User',
+        related_name='group_memberships',
+        blank=True,
+        help_text='Members of this group.'
+    )
+    moderators = models.ManyToManyField(
+        'social_network.User',
+        related_name='group_moderators',
+        blank=True,
+        help_text='Moderators of this group.'
+    )
+    group_photo = models.ImageField(upload_to='group_photos/', null=True, blank=True)
+    created = models.DateTimeField(default=timezone.now, editable=False, help_text='The date and time the group was created.')
+
+    
+
 
 
 

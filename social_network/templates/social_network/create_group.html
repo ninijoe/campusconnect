@@ -1,0 +1,15 @@
+<!-- social_network/templates/social_network/create_group.html -->
+
+{% extends "social_network/layout.html" %}
+
+{% block main_content %}
+  <h2>Create a Group</h2>
+  <form method="post" action="{% url 'create_group' %}" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <label for="group_photo">Group Photo:</label>
+    <input type="file" name="group_photo">
+    <br>
+    <button type="submit">Create Group</button>
+  </form>
+{% endblock %}

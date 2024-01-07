@@ -6,11 +6,10 @@ from django.conf.urls.static import static
 from social_network.views import user_profile
 from .views import change_username
 from .views import terms_of_service, privacy_policy
-from .views import delete_account_view
 from .views import like_comment
 from .views import display_index_posts, reshare_index_post, delete_post
 from .views import follow_user
-
+from .views import search_group
 
 
 
@@ -106,8 +105,6 @@ urlpatterns = [
 
     path('privacy-policy/', privacy_policy, name='privacy_policy'),
 
-    path('delete_account/', delete_account_view, name='delete_account'),
-
     path('change_password/', views.change_password, name='change_password'),
 
     path('block_user/<str:username>/', views.block_user, name='block_user'),
@@ -129,6 +126,17 @@ urlpatterns = [
     path('reset_notification_count/', views.reset_notification_count, name='reset_notification_count'),
     
     path('notification_count/', views.notification_count, name='notification_count'),
+
+    path('create_group/', views.create_group, name='create_group'),
+
+    path('view_group/<int:group_id>/', views.view_group, name='view_group'),
+  
+    path('user_statistics/', views.user_statistics_view, name='user_statistics'),
+
+    path('search_group/', views.search_group, name='search_group'),
+
+    # Add the URL for the groups view
+    path('groups/', views.groups, name='groups'),
 
 
 ]
