@@ -221,10 +221,23 @@ class Group(models.Model):
     )
     group_photo = models.ImageField(upload_to='group_photos/', null=True, blank=True)
     created = models.DateTimeField(default=timezone.now, editable=False, help_text='The date and time the group was created.')
+    is_private = models.BooleanField(default=False, help_text='Indicates whether the group is private or public.')
 
 
     def __str__(self):
         return self.name
+    
+
+
+
+
+
+
+class JoinRequest(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    group = models.ForeignKey(Group, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+
 
 
 

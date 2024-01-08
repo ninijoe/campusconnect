@@ -38,7 +38,7 @@ from .forms import ChangeEmailForm
 from django.contrib.auth.views import PasswordResetView
 from .forms import CustomPasswordResetForm  # Import your custom form if needed
 from django.contrib.auth.models import User  # Import the User model
-from .models import User
+from .models import User, JoinRequest
 from itertools import chain
 from operator import attrgetter
 from django.http import JsonResponse
@@ -1031,6 +1031,162 @@ def groups(request):
 
 
 
+
+
+@login_required(login_url='login')
+def join_group(request, group_id):
+    group = get_object_or_404(Group, id=group_id)
+
+    if group.is_private:
+        # For private groups, send join request
+        JoinRequest.objects.create(user=request.user, group=group)
+    else:
+        # For public groups, add user directly
+        group.members.add(request.user)
+        return redirect('view_group', group_id=group.id)
+    
+    return redirect('groups', group_id=group.id)
+    
+
+
+
+
+
+
+
+
+@login_required(login_url='login')
+def leave_group(request, group_id):
+    group = get_object_or_404(Group, id=group_id)
+
+    if request.user == group.creator:
+        messages.error(request, "The group creator cannot leave the group.")
+    else:
+        group.members.remove(request.user)
+        group.moderators.remove(request.user)
+        messages.success(request, 'You have left the group.')
+
+    return redirect('groups')  # Redirect to the group listing page or another appropriate page
+
+
+
+
+
+
+
+
+
+@login_required(login_url='login')
+def handle_join_request(request, group_id, request_id, action):
+    group = get_object_or_404(Group, id=group_id)
+    join_request = get_object_or_404(JoinRequest, id=request_id)
+
+    if request.user != group.creator and request.user not in group.moderators.all():
+        return HttpResponseForbidden("You don't have permission to handle join requests.")
+
+    if action == 'approve':
+        group.members.add(join_request.user)
+        join_request.delete()
+        messages.success(request, f'Join request from {join_request.user.username} approved.')
+    elif action == 'reject':
+        join_request.delete()
+        messages.success(request, f'Join request from {join_request.user.username} rejected.')
+
+    return redirect('group_settings', group_id=group.id)
+
+
+
+
+
+
+
+@login_required(login_url='login')
+def group_settings(request, group_id):
+    group = get_object_or_404(Group, id=group_id)
+
+    if request.user != group.creator and request.user not in group.moderators.all():
+        return HttpResponseForbidden("You don't have permission to access group settings.")
+
+    return render(request, 'social_network/group_settings.html', {'group': group})
+
+
+
+
+
+
+
+
+@login_required(login_url='login')
+def make_moderator(request, group_id):
+    group = get_object_or_404(Group, id=group_id)
+
+    if request.user != group.creator and request.user not in group.moderators.all():
+        return HttpResponseForbidden("You don't have permission to make a member a moderator.")
+
+    if request.method == 'POST':
+        member_id = request.POST.get('member')
+        member = get_object_or_404(User, id=member_id)
+
+        if member not in group.moderators.all():
+            group.moderators.add(member)
+            messages.success(request, f'{member.username} is now a moderator.')
+        else:
+            messages.info(request, f'{member.username} is already a moderator.')
+
+    return redirect('group_settings', group_id=group.id)
+
+
+
+
+
+
+
+
+
+@login_required(login_url='login')
+def remove_moderator(request, group_id, moderator_id):
+    group = get_object_or_404(Group, id=group_id)
+    moderator = get_object_or_404(User, id=moderator_id)
+
+    if request.user != group.creator and request.user not in group.moderators.all():
+        return HttpResponseForbidden("You don't have permission to remove a moderator.")
+
+    if moderator in group.moderators.all():
+        group.moderators.remove(moderator)
+        messages.success(request, f'{moderator.username} is no longer a moderator.')
+    else:
+        messages.info(request, f'{moderator.username} is not a moderator.')
+
+    return redirect('group_settings', group_id=group.id)
+
+
+
+
+
+
+
+
+
+@login_required(login_url='login')
+def update_group_privacy(request, group_id):
+    group = get_object_or_404(Group, id=group_id)
+
+    if request.user != group.creator and request.user not in group.moderators.all():
+        return HttpResponseForbidden("You don't have permission to update group privacy.")
+
+    if request.method == 'POST':
+        group.is_private = not group.is_private
+        group.save()
+        messages.success(request, 'Group privacy updated successfully.')
+
+    return redirect('group_settings', group_id=group.id)
+
+
+
+
+
+
+
 def create_group(request):
     if request.method == 'POST':
         form = GroupForm(request.POST, request.FILES)
@@ -1097,7 +1253,6 @@ def view_group(request, group_id):
     })
 
 
-
 @login_required(login_url='login')
 def create_group_post(request, group_id):
     user = request.user
@@ -1136,7 +1291,6 @@ def create_group_post(request, group_id):
 
 
 
-
 @login_required(login_url='login')
 def group_posts(request, group_id):
     group = get_object_or_404(Group, id=group_id)
@@ -1147,7 +1301,6 @@ def group_posts(request, group_id):
 
     context = {'group': group, 'form': form, 'group_posts': group_posts}
     return render(request, 'social_network/group_posts.html', context)
-
 
 
 

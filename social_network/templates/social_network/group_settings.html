@@ -1,0 +1,63 @@
+<!-- social_network/templates/social_network/group_settings.html -->
+
+{% extends "social_network/layout.html" %}
+
+{% block main_content %}
+  <h2>{{ group.name }}</h2>
+
+  {% if request.user == group.creator %}
+    <a href="{% url 'update_group' group.id %}" class="btn btn-secondary edit-group-btn">Edit Group</a>
+    <a href="{% url 'update_group_privacy' group.id %}" class="btn btn-secondary edit-group-btn">Update Privacy</a>
+  {% endif %}
+
+  <!-- Display links for handling join requests, making group public/private, and managing moderators -->
+  {% if request.user == group.creator or request.user in group.moderators.all %}
+    <div class="settings-section">
+      <h3>Join Requests</h3>
+      {% for join_request in group.join_requests.all %}
+        <p>
+          {{ join_request.user.username }} wants to join the group.
+          <a href="{% url 'handle_join_request' group.id join_request.id 'approve' %}" class="btn btn-success">Approve</a>
+          <a href="{% url 'handle_join_request' group.id join_request.id 'reject' %}" class="btn btn-danger">Reject</a>
+        </p>
+      {% endfor %}
+    </div>
+
+    <div class="settings-section">
+      <h3>Group Privacy</h3>
+      <p>
+        {% if group.is_private %}
+          This group is currently private. <a href="{% url 'update_group_privacy' group.id %}" class="btn btn-secondary">Make Public</a>
+        {% else %}
+          This group is currently public. <a href="{% url 'update_group_privacy' group.id %}" class="btn btn-secondary">Make Private</a>
+        {% endif %}
+      </p>
+    </div>
+
+    <div class="settings-section">
+      <h3>Moderators</h3>
+      <ul>
+        {% for moderator in group.moderators.all %}
+          <li>
+            {{ moderator.username }}
+            <a href="{% url 'remove_moderator' group.id moderator.id %}" class="btn btn-danger">Remove Moderator</a>
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    <div class="settings-section">
+      <h3>Make Member a Moderator</h3>
+      <form method="post" action="{% url 'make_moderator' group.id %}">
+        {% csrf_token %}
+        <label for="member">Select Member:</label>
+        <select name="member" id="member">
+          {% for member in group.members.all %}
+            <option value="{{ member.id }}">{{ member.username }}</option>
+          {% endfor %}
+        </select>
+        <button type="submit" class="btn btn-success">Make Moderator</button>
+      </form>
+    </div>
+  {% endif %}
+{% endblock %}

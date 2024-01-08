@@ -154,5 +154,18 @@ urlpatterns = [
 
     path('delete_group_comment/<int:group_id>/<int:group_post_id>/<int:comment_id>/', views.delete_group_comment, name='delete_group_comment'),
 
+    path('group/<int:group_id>/join/', views.join_group, name='join_group'),
+
+    path('group/<int:group_id>/leave/', views.leave_group, name='leave_group'),
+
+    path('group/<int:group_id>/join-request/<int:request_id>/<str:action>/', views.handle_join_request, name='handle_join_request'),
+    
+    path('group/<int:group_id>/update-privacy/', views.update_group_privacy, name='update_group_privacy'),
+    
+    path('group_settings/<int:group_id>/', views.group_settings, name='group_settings'),
+    
+    path('group_settings/make_moderator/<int:group_id>/', views.make_moderator, name='make_moderator'),
+    
+    path('group_settings/remove_moderator/<int:group_id>/<int:moderator_id>/', views.remove_moderator, name='remove_moderator'),
 
 ]
