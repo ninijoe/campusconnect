@@ -563,15 +563,12 @@ def delete_post(request, post_id):
 
 
 
-
-
 @login_required
-def follow_user(request):
+def follow_user(request, username):
     if request.method == "POST":
         follow_form = FollowForm(request.POST)
         if follow_form.is_valid():
-            user_to_follow_id = follow_form.cleaned_data.get('user_to_follow')
-            user_to_follow = User.objects.get(pk=user_to_follow_id)
+            user_to_follow = User.objects.get(username=username)
 
             if user_to_follow == request.user:
                 # Prevent following oneself

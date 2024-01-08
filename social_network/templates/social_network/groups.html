@@ -84,9 +84,9 @@
                                     </div>
                                 </td>
                                 <td>
-                                    <a href="{% url 'view_group' group.id %}" style="font-weight: bold;">{{ group.name }}</a>
+                                    <a href="{% url 'view_group' group.id %}" style="font-weight: bold;">{{ group.name|title }}</a>
                                 </td>
-                                <td>{{ group.bio }}</td>
+                                <td>{{ group.bio|title }}</td>
                                 <td>
                                     <a href="{% url 'user_profile' group.creator.username %}">@{{ group.creator.username }}</a>
                                 </td>

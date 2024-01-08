@@ -31,7 +31,7 @@
                         {% if user_profile == request.user %}
                             {# This is the user's own profile, so don't render the form #}
                         {% else %}
-                        <form id="blockForm" method="post" action="{% url 'block_user' user_profile.username %}">
+                        <form id="blockForm" method="post" action="{% url 'block_user' user.username %}">
                             {% csrf_token %}
                             <button type="button" class="btn btn-danger mt-3" onclick="confirmBlock()">Block</button>
                         </form>
