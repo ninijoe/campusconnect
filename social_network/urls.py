@@ -138,5 +138,15 @@ urlpatterns = [
     # Add the URL for the groups view
     path('groups/', views.groups, name='groups'),
 
+    path('create_group/', views.create_group, name='create_group'),
+
+    path('delete_group/<int:group_id>/', views.delete_group, name='delete_group'),
+
+    path('groups/<int:group_id>/edit/', views.update_group, name='update_group'),
+    
+    path('groups/<int:group_id>/posts/', views.group_posts, name='group_posts'),
+    path('groups/<int:group_id>/create_post/', views.create_group_post, name='create_group_post'),
+    path('groups/<int:group_id>/delete_post/<int:group_post_id>/', views.delete_group_post, name='delete_group_post'),
+    path('groups/<int:group_id>/like_post/<int:group_post_id>/', views.like_group_post, name='like_group_post'),
 
 ]

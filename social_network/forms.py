@@ -6,12 +6,21 @@ from django.contrib.auth.forms import UserChangeForm , PasswordChangeForm
 from django.contrib.auth import authenticate
 from django.contrib.auth.forms import PasswordResetForm
 from django.utils.safestring import mark_safe
-from .models import Group
+from .models import Group, GroupPost
 
 class GroupForm(forms.ModelForm):
     class Meta:
         model = Group
-        fields = ['name', 'bio']
+        fields = ['name', 'bio', 'group_photo']
+        widgets = {
+            'bio': forms.Textarea(attrs={'cols': 30, 'rows': 5}),  # Adjust the 'cols' value as needed
+        }
+
+
+class GroupUpdateForm(forms.ModelForm):
+    class Meta:
+        model = Group
+        fields = ['name', 'bio', 'group_photo']
 
 
 DEPARTMENT_CHOICES = [
@@ -112,6 +121,30 @@ class PostForm(forms.ModelForm):
                          str(self) +
                          '</div>')
     
+
+
+
+
+class GroupPostForm(forms.ModelForm):
+    class Meta:
+        model = GroupPost
+        fields = ['content']
+
+    content = forms.CharField(
+        widget=forms.Textarea(attrs={'class': 'form-control with-icon', 'rows': '4', 'placeholder': 'Write your group post here...'}),
+        label='',
+    )
+
+    media_form = PostMediaForm()  # Include the media form as a field
+
+    def as_p_with_icon(self):
+        return mark_safe('<div style="position: relative;">' +
+                         '<i class="fas fa-camera" style="position: absolute; right: 10px; top: 80px; color:grey; z-index: 1;"></i>' +
+                         str(self) +
+                         '</div>')
+
+
+
 
 
 

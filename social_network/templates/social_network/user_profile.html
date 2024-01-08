@@ -31,10 +31,20 @@
                         {% if user_profile == request.user %}
                             {# This is the user's own profile, so don't render the form #}
                         {% else %}
-                        <form method="post" action="{% if user_profile.username %}{% url 'user_profile' user_profile.username %}{% endif %}">
+                        <form id="blockForm" method="post" action="{% url 'block_user' user_profile.username %}">
                             {% csrf_token %}
-                            <button type="submit" class="btn btn-danger mt-3">Block</button>
+                            <button type="button" class="btn btn-danger mt-3" onclick="confirmBlock()">Block</button>
                         </form>
+                        
+                        <script>
+                            function confirmBlock() {
+                                var result = confirm("Are you sure you want to block this user?");
+                                if (result) {
+                                    document.getElementById('blockForm').submit();
+                                }
+                            }
+                        </script>
+                        
                         
                         {% endif %}
 

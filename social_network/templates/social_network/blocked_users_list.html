@@ -12,7 +12,7 @@
                     <div class="col-md-4 mb-3">
                         <div class="card" style="border: 1.5px solid black;">
                             <div class="card-img-top d-flex align-items-center justify-content-center" style="height: 180px; overflow: hidden;">
-                                {% if user.profile_photo %}
+                                {% if user_profile.profile_photo %}
                                     <img src="{% if user.profile_photo %}{{ user.profile_photo.url }}{% else %}{% static 'path_to_default_image.jpg' %}{% endif %}" alt="{{ user.username }} Profile Picture" style="width: 100%;">
                                 {% else %}
                                     <i class="fas fa-user-circle fa-9x text-secondary" id="profile-photo-placeholder"></i>

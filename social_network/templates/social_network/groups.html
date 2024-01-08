@@ -4,27 +4,149 @@
 
 {% block main_content %}
     <h2>All Groups</h2>
+    <hr>
     <br>
     <!-- Search Bar -->
-    <form method="GET" action="{% url 'search_group' %}" class="mb-3 fixed-search-bar" style="max-width: 300px;">
-            <div class="input-group">
-            <input type="text" name="search" placeholder="Search group or club" class="form-control">
-            <div class="input-group-append">
-                <button type="submit" class="btn btn-primary">Search</button>
+    <div class="container mt-4">
+        <div class="row">
+            <!-- Search Group Form -->
+            <div class="col-md-10 fixed-left">
+                <form method="GET" action="{% url 'search_group' %}" class="mb-3 fixed-search-bar" style="">
+                    <div class="input-group">
+                        <input type="text" name="search" placeholder="Search group or club" class="form-control">
+                        <div class="input-group-append">
+                            <button type="submit" class="btn btn-primary">Search</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+    
+            <!-- Create Group Form -->
+            <div class="col-md-6">
+                <button class="btn btn-primary" id="createGroupBtn">
+                    <i class="fas fa-plus"></i> Create Group
+                </button>
+            
+                <div id="createGroupForm">
+                    <br>
+                    <!-- create_group.html -->
+                    <form method="post" action="{% url 'create_group' %}" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        {{ form.non_field_errors }}  <!-- Display form-level errors, if any -->
+
+                        <div class="form-group">
+                            {{ form.name.label_tag }}
+                            {{ form.name }}
+                            {{ form.name.errors }}
+                        </div>
+
+                        <div class="form-group">
+                            {{ form.bio.label_tag }}
+                            {{ form.bio }}
+                            {{ form.bio.errors }}
+                        </div>
+
+                        <div class="form-group">
+                            {{ form.group_photo.label_tag }}
+                            {{ form.group_photo }}
+                            {{ form.group_photo.errors }}
+                        </div>
+
+                        <button type="submit" class="btn btn-success">Create</button>
+                    </form>
+
+                </div>
             </div>
         </div>
-    </form> 
-  
-    <br>
+        <br>
+        {% if groups %}
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Group Photo</th>
+                            <th>Group Name</th>
+                            <th>Group Bio</th>
+                            <th>Group Owner</th>
+                            <th>Number of Members</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for group in groups %}
+                            <tr>
+                                <td>
+                                    <div class="profile-photo-container">
+                                        {% if group.group_photo %}
+                                            <img src="{{ group.group_photo.url }}" alt="{{ group.name }} Group Photo" class="img-fluid rounded-circle mr-2" style="width: 50px; height: 50px; object-fit: cover;">
+                                        {% else %}
+                                            <i class="fas fa-image fa-2x text-secondary" id="group-photo-placeholder"></i>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td>
+                                    <a href="{% url 'view_group' group.id %}" style="font-weight: bold;">{{ group.name }}</a>
+                                </td>
+                                <td>{{ group.bio }}</td>
+                                <td>
+                                    <a href="{% url 'user_profile' group.creator.username %}">@{{ group.creator.username }}</a>
+                                </td>
+                                <td>
+                                    {{ group.members.count }}
+                                </td>
+                                <td>
+                                    {% if group.creator == request.user %}
+                                    <form method="post" action="{% url 'delete_group' group.id %}" onsubmit="return confirmDelete()">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-danger btn-sm">
+                                            <i class="fas fa-trash-alt" style="font-size: 14px;"></i>
+                                        </button>
+                                    </form>
+                                    
+                                    <script>
+                                    function confirmDelete() {
+                                        var result = confirm("Are you sure you want to delete this group?");
+                                        return result;
+                                    }
+                                    </script>
+                                    
+                                        
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
 
-    {% if groups %}
-        <ul>
-            {% for group in groups %}
-                <li><a href="{% url 'view_group' group.id %}">{{ group.name }}</a></li>
-            {% endfor %}
-        </ul>
-    {% else %}
-        <p>No groups found.</p>
-    {% endif %}
-  
+        {% else %}
+                <p>No groups found.</p>
+        {% endif %}
+
+    </div>
+    <br>
+    
+    <style>
+        /* Additional styles can be added here */
+        #createGroupForm {
+            display: none; /* Hide the form by default */
+            animation: slideDown 0.5s ease-out; /* Animation properties */
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-10%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+    </style>
+    <script>
+       // JavaScript to toggle the visibility of the form
+        document.getElementById('createGroupBtn').addEventListener('click', function() {
+            var createGroupForm = document.getElementById('createGroupForm');
+            createGroupForm.style.display = (createGroupForm.style.display === 'block') ? 'none' : 'block';
+        });
+    </script>
 {% endblock %}

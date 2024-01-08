@@ -241,3 +241,38 @@ class Mention(models.Model):
     comment = models.ForeignKey(Comment, on_delete=models.CASCADE, related_name='mentions', null=True)
     created = models.DateTimeField(auto_now_add=True)
     seen = models.BooleanField(default=False)  # Add this line to include the 'seen' field
+
+
+
+
+
+
+class GroupPost(models.Model):
+    author = models.ForeignKey(User, on_delete=models.CASCADE)
+    group = models.ForeignKey(Group, on_delete=models.CASCADE)
+    content = models.TextField(max_length=500)
+    created = models.DateTimeField(auto_now_add=True)
+    likes = models.ManyToManyField(User, related_name='liked_group_posts', blank=True)
+    dislikes = models.ManyToManyField(User, related_name='disliked_group_posts', blank=True)
+    image = models.ImageField(upload_to='group_post_images/', null=True, blank=True)
+    reshare_count = models.PositiveIntegerField(default=0)
+    reshared = models.BooleanField(default=False)  # Add this field
+    media = models.OneToOneField(PostMedia, on_delete=models.CASCADE, null=True, blank=True)
+
+    def __str__(self):
+        formatted_time = self.created.strftime("%b %d, %Y %I:%M %p")
+        return f"@{self.author}'s group post- (' {self.content[:20]}..' ) {formatted_time}"
+
+    def mark_as_reshared(self):
+        self.reshared = True
+        self.save()
+
+    def increase_reshare_count(self):
+        self.reshare_count += 1
+        self.save()
+
+    def delete(self, *args, **kwargs):
+        # Delete associated media when group post is deleted
+        if self.media:
+            self.media.delete()
+        super().delete(*args, **kwargs)

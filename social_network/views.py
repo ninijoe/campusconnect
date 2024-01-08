@@ -48,8 +48,13 @@ from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 from django.conf import settings
 from django.core.mail import send_mail
-from .forms import GroupForm
-from .models import Group
+from .forms import GroupForm, GroupPostForm, PostForm
+from .models import Group, GroupPost
+from django.utils.text import capfirst
+from .forms import GroupUpdateForm
+from django.contrib import messages
+
+
 
 @login_required
 def change_email(request):
@@ -220,9 +225,9 @@ def my_profile(request):
         user = request.user
 
         # Update the user fields based on form input, but only if a value is provided
-        user.first_name = request.POST.get("first-name", user.first_name)
-        user.last_name = request.POST.get("last-name", user.last_name)
-        user.gender = request.POST.get("gender", user.gender)
+        user.first_name = capfirst(request.POST.get("first-name", user.first_name))
+        user.last_name = capfirst(request.POST.get("last-name", user.last_name))
+        user.gender = capfirst(request.POST.get("gender", user.gender))
         user.department = request.POST.get("department", user.department)
         user.year_of_study = request.POST.get("year-of-study", user.year_of_study)
 
@@ -307,13 +312,13 @@ def update_profile(request):
 
             # Update fields if new values are provided
             if new_first_name is not None:
-                user.first_name = new_first_name
+                user.first_name = capfirst(new_first_name)
             if new_last_name is not None:
-                user.last_name = new_last_name
+                user.last_name = capfirst(new_last_name)
             if new_gender is not None:
-                user.gender = new_gender
+                user.gender = capfirst(new_gender)
             if new_department is not None:
-                user.department = new_department
+                user.department = capfirst(new_department)
             if new_year_of_study is not None:
                 user.year_of_study = new_year_of_study
 
@@ -1012,7 +1017,14 @@ def search_group(request):
     }
 
     # Render the template with the filtered queryset
-    return render(request, 'social_network/search_group.html', context)
+    return render(request, 'social_network/groups.html', context)
+
+
+
+
+
+
+
 
 
 
@@ -1024,14 +1036,17 @@ def search_group(request):
 
 @login_required
 def groups(request):
-    # Retrieve all groups
-    all_groups = Group.objects.all()
+    # Your existing logic to retrieve groups
+    groups = Group.objects.all()
+
+    # Create an instance of GroupForm to pass to the template
+    form = GroupForm()
 
     context = {
-        'groups': all_groups,
+        'groups': groups,
+        'form': form,  # Include the form in the context
     }
 
-    # Render the template with the queryset of all groups
     return render(request, 'social_network/groups.html', context)
 
 
@@ -1039,27 +1054,57 @@ def groups(request):
 
 
 
+def create_group(request):
+    if request.method == 'POST':
+        form = GroupForm(request.POST, request.FILES)
+        if form.is_valid():
+            group = form.save(commit=False)
+            # Capitalize every first letter of the group name
+            group.name = capfirst(group.name)
+            group.creator = request.user
+            group.save()
+            # Add the creator to the list of members
+            group.members.add(request.user)
+            group.moderators.add(request.user)
+            return redirect('view_group', group.id)
+    else:
+        form = GroupForm()
+
+    context = {'form': form}
+    return render(request, 'social_network/groups.html', context)
+
+    
+
+
+
 
 
 @login_required
-def create_group(request):
+def update_group(request, group_id):
+    group = get_object_or_404(Group, id=group_id)
+
+    # Check if the user is the creator of the group
+    if request.user != group.creator:
+        return redirect('some_access_denied_page')  # Redirect to an access denied page or handle appropriately
+
     if request.method == 'POST':
-        name = request.POST.get('name')
-        bio = request.POST.get('bio')
+        form = GroupUpdateForm(request.POST, request.FILES, instance=group)
+        if form.is_valid():
+            # Add the creator to the list of members
+            group.members.add(request.user)
+            group.moderators.add(request.user)
 
-        # Assuming the creator is the current logged-in user
-        creator = request.user
+            form.save()
+            return redirect('view_group', group_id=group.id)
+        else:
+            return
+    else:
+        form = GroupUpdateForm(instance=group)
 
-        # Create the group
-        group = Group.objects.create(name=name, creator=creator, bio=bio)
+    return render(request, 'social_network/edit_group.html', {'form': form, 'group': group})
 
-        # Add the creator as a member and moderator
-        group.members.add(creator)
-        group.moderators.add(creator)
 
-        return redirect('groups')
 
-    return render(request, 'social_network/create_group.html')
 
 
 
@@ -1072,6 +1117,118 @@ def view_group(request, group_id):
 
 
 
+
+
+
+
+@login_required(login_url='login')
+def create_group_post(request, group_id):
+    user = request.user
+    group = get_object_or_404(Group, id=group_id)
+
+    # Check if the user is a member of the group
+    if not group.members.filter(pk=user.pk).exists():
+        return HttpResponse("You are not a member of this group.")
+
+    if request.method == 'POST':
+        form = GroupPostForm(request.POST)
+        media_form = PostMediaForm(request.POST, request.FILES)
+        if form.is_valid():
+            group_post = form.save(commit=False)
+            group_post.author = user
+            group_post.group = group
+            group_post.save()
+
+            media = media_form.save()
+            group_post.media = media
+            group_post.save()
+
+            # Extract mentions from the group post content
+            mentioned_users = find_mentions(group_post.content)
+
+            # Save mentions in the Mention model
+            for mentioned_user in mentioned_users:
+                Mention.objects.create(group_post=group_post, user=user)
+
+            # Redirect back to the group page
+            return redirect('view_group', group_id=group.id)
+
+    # Handle the case where the form is not valid or when the request method is not POST
+    # You might want to add additional context or logic here
+    return HttpResponse("An error occurred while creating the group post.")
+
+
+
+
+
+
+
+@login_required(login_url='login')
+def group_posts(request, group_id):
+    group = get_object_or_404(Group, id=group_id)
+    form = GroupPostForm()
+
+    context = {'group': group, 'form': form}
+    return render(request, 'social_network/group_posts.html', context)
+
+
+
+
+
+
+@login_required(login_url='login')
+def delete_group_post(request, group_id, group_post_id):
+    group = get_object_or_404(Group, id=group_id)
+    group_post = get_object_or_404(GroupPost, id=group_post_id)
+
+    # Check if the user is the author or a moderator of the group
+    if group_post.author != request.user and request.user not in group.moderators.all():
+        return HttpResponse("You do not have permission to delete this group post.")
+
+    try:
+        if group_post.author == request.user or request.user in group.moderators.all():
+            group_post.delete()
+
+        # Check the Referer header to determine the previous page
+        referer = request.META.get('HTTP_REFERER')
+        if referer:
+            # Redirect the user back to the previous page
+            return redirect(referer)
+        else:
+            # If no referer is provided, redirect to a default page
+            return redirect('view_group', group_id=group.id)
+    except GroupPost.DoesNotExist:
+        raise Http404("Group Post does not exist.")
+
+
+
+
+
+@login_required
+def like_group_post(request, group_id, group_post_id):
+    group_post = get_object_or_404(GroupPost, id=group_post_id)
+
+    if request.user in group_post.likes.all():
+        group_post.likes.remove(request.user)
+    else:
+        group_post.likes.add(request.user)
+
+    return redirect('view_group', group_id=group_id)  # You can redirect to the group post details or another page
+
+
+
+
+
+@login_required
+def delete_group(request, group_id):
+    group = get_object_or_404(Group, id=group_id)
+
+    # Check if the requesting user is the creator of the group
+    if group.creator == request.user:
+        group.delete()
+        return redirect('groups')  # Redirect to your group listing page
+    else:
+        return HttpResponseForbidden("You don't have permission to delete this group.")
 
 
 

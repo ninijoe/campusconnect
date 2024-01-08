@@ -1,0 +1,48 @@
+<!-- social_network/edit_group.html -->
+{% extends "social_network/layout.html" %}
+
+{% block main_content %}
+    <div class="row">
+        <div class="col-md-6">
+            <div class="group-photo text-center">
+                <div class="group-photo-container text-center">
+                    {% if group.group_photo %}
+                        <img src="{{ group.group_photo.url }}" alt="{{ group.name }} Group Photo" class="img-fluid group-photo" id="group-photo">
+                    {% else %}
+                        <i class="fas fa-image fa-10x text-secondary group-photo-placeholder" id="group-photo-placeholder"></i>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="group-info">
+                <h2 class="group-name" style="display: inline-block; margin-right: 10px;">{{ group.name|title }}</h2>
+                <p class="group-creator" style="display: inline-block;">Created by: <a href="{% url 'user_profile' group.creator.username %}">@{{ group.creator.username }}</a></p>
+                <p class="group-bio" style="font-weight: bold">{{ group.bio|title }}</p>
+
+                <div class="members mt-4">
+                    <h5 class="members-title">Members</h5>
+                    {% for member in group.members.all %}
+                        <span class="badge badge-primary members-badge">{{ member.username }}</span>
+                    {% endfor %}
+                </div>
+
+                {% if request.user == group.creator %}
+                    <a href="{% url 'update_group' group.id %}" class="btn btn-secondary edit-group-btn">Edit Group</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {% if request.user == group.creator %}
+        <div class="row mt-4">
+            <div class="col-md-6 offset-md-3">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </form>
+            </div>
+        </div>
+    {% endif %}
+{% endblock %}

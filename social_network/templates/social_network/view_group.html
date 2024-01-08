@@ -1,0 +1,132 @@
+{% extends "social_network/layout.html" %}
+
+<!-- Add this within the head section of your HTML template -->
+<style>
+  .edit-group-btn {
+      display: inline-block;
+      margin-top: 10px;
+  }
+</style>
+
+{% block main_content %}
+  <div class="row">
+      <div class="col-md-6">
+          <div class="group-photo text-center">
+              <div class="group-photo-container text-center">
+                  {% if group.group_photo %}
+                      <img src="{{ group.group_photo.url }}" alt="{{ group.name }} Group Photo" class="img-fluid group-photo" id="group-photo">
+                  {% else %}
+                      <i class="fas fa-image fa-10x text-secondary group-photo-placeholder" id="group-photo-placeholder"></i>
+                  {% endif %}
+              </div>
+          </div>
+      </div>
+      <div class="col-md-6">
+          <div class="group-info">
+              <h2 class="group-name" style="display: inline-block; margin-right: 10px;">{{ group.name|title }}</h2>
+              {% if request.user == group.creator %}
+                  <a href="{% url 'update_group' group.id %}" class="btn btn-secondary edit-group-btn">Edit Group</a>
+              {% endif %}
+              <p class="group-creator" style="display: inline-block;">Created by: <a href="{% url 'user_profile' group.creator.username %}">@{{ group.creator.username }}</a></p>
+              <p class="group-bio" style="font-weight: bold; font-style: italic; text-align: justify; margin-top: 10px;">{{ group.bio|title }}</p>
+
+              <div class="members mt-4">
+                <h5 style="color: rgb(0, 106, 255);" class="members-title" id="members-title">Members ({{ group.members.count }})</h5>
+                <div class="moderators-dropdown" style="display: none;">
+                  {% for moderators in group.moderators.all %}
+                      <span class="badge badge-primary members-badge">{{ moderator.username }}</span>
+                  {% endfor %}
+              </div>
+                <div class="members-dropdown" style="display: none;">
+                    {% for member in group.members.all %}
+                        <span class="badge badge-primary members-badge">{{ member.username }}</span>
+                    {% endfor %}
+                </div>
+              </div>
+              <script>
+                $(document).ready(function () {
+                    $('#members-title').click(function () {
+                        $('.members-dropdown').toggle();
+                    });
+                });
+              </script>
+              <hr>
+              <br>
+              
+              
+          </div>
+      </div>
+
+    </div>
+  <hr>
+
+  <!-- Group Post Creation Form -->
+  <div class="mb-3" id="group-post-creation-form">
+      <form method="post" action="{% url 'create_group_post' group.id %}">
+          {% csrf_token %}
+
+          <div id="media-upload-container" style="cursor: pointer;">
+              {{ form.as_p_with_icon }}
+          </div>
+
+          <br>
+          <button type="submit" class="btn btn-primary">
+              <i class="fas fa-comment" style="font-size: 18px;"></i>
+              Create Group Post
+          </button>
+      </form>
+  </div>
+
+  <!-- Display Group Posts -->
+  <div class="container" style="margin-top: 30px;">
+        <div class="row">
+          <div class="col-md-12">
+                {% for group_post in group.group_posts.all %}
+                  <div class="card mb-3">
+                      <div class="card-header">
+                          {% if group_post.is_reshared %}
+                              <p class="text-muted">Shared by:
+                                  <a href="{% url 'user_profile' group_post.reshared_by.username %}" class="text-primary">@{{ group_post.reshared_by.username }}</a>
+                              </p>
+                          {% endif %}
+
+                          {% if group_post.author.profile_photo %}
+                              <img src="{{ group_post.author.profile_photo.url }}" alt="{{ group_post.author.username }} Profile Picture" class="profile-picture img-fluid rounded-circle mr-2" style="width: 40px; height: 40px; object-fit: cover;">
+                          {% endif %}
+                          <strong><a href="{% url 'user_profile' group_post.author.username %}">@{{ group_post.author }}</a></strong>
+                          <small class="text-muted">{{ group_post.created }}</small>
+                          <form method="post" action="{% url 'like_group_post' group.id group_post.id %}" style="display: inline;">
+                              {% csrf_token %}
+                              <button type="submit" class="btn btn-link">
+                                  <i class="far fa-thumbs-up" style="color: blue;"></i>
+                              </button>
+                              <span>{{ group_post.likes.count }} likes</span>
+                          </form>
+                      </div>
+
+                      <div class="card-body">
+                          <p class="card-text">{{ group_post.content }}</p>
+                      </div>
+
+                      <div class="card-footer">
+                          {% if group_post.author == user %}
+                              <form method="post" action="{% url 'delete_group_post' group.id group_post.id %}">
+                                  {% csrf_token %}
+                                  <button type="submit" class="btn btn-danger" style="background-color: #ff4f4f; color: #fff;">
+                                      <i class="fas fa-trash-alt" style="font-size: 14px;"></i>
+                                  </button>
+                              </form>
+                          {% endif %}
+                      </div>
+                  </div>
+                
+                {% endfor %}
+            </div>
+        </div>
+        
+      </div>
+      
+    </div>
+  </div>
+  
+{% endblock %}

@@ -3,9 +3,10 @@
 
 {% block main_content %}
 
-<div class="content" style="background: white; rgb(220, 210, 210); width: 800px; position: absolute; top: 60px; left: 6%; bottom: 0; overflow-y: auto;">
+<div class="content" style="background: white; rgb(220, 210, 210); overflow-y: auto;">
  
     <h1>Discover Others </h1>
+    <hr>
     <br>
     <!-- Search Bar -->
     <form method="GET" action="{% url 'discover' %}" class="mb-3 fixed-search-bar" style="max-width: 300px;">
@@ -36,7 +37,7 @@
                         <td>
                             <div class="profile-photo-container">
                                 {% if user.profile_photo %}
-                                    <img src="{{ user.profile_photo.url }}" alt="{{ user.username }} Profile Photo" class="img-fluid" style="width: 50px; height: 50px; object-fit: cover;">
+                                    <img src="{{ user.profile_photo.url }}" alt="{{ user.username }} Profile Photo" class="img-fluid rounded-circle mr-2" style="width: 50px; height: 50px; object-fit: cover;">
                                 {% else %}
                                     <i class="fas fa-user-circle fa-2x text-secondary" id="profile-photo-placeholder"></i>
                                 {% endif %}
