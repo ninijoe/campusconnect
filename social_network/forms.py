@@ -96,6 +96,9 @@ class PostMediaForm(forms.ModelForm):
 
     def as_p(self):
         return mark_safe(str(self))
+    
+
+
 
 
 
@@ -124,24 +127,6 @@ class PostForm(forms.ModelForm):
 
 
 
-
-class GroupPostForm(forms.ModelForm):
-    class Meta:
-        model = GroupPost
-        fields = ['content']
-
-    content = forms.CharField(
-        widget=forms.Textarea(attrs={'class': 'form-control with-icon', 'rows': '4', 'placeholder': 'Write your group post here...'}),
-        label='',
-    )
-
-    media_form = PostMediaForm()  # Include the media form as a field
-
-    def as_p_with_icon(self):
-        return mark_safe('<div style="position: relative;">' +
-                         '<i class="fas fa-camera" style="position: absolute; right: 10px; top: 80px; color:grey; z-index: 1;"></i>' +
-                         str(self) +
-                         '</div>')
 
 
 

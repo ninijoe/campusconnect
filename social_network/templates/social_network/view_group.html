@@ -32,11 +32,8 @@
 
               <div class="members mt-4">
                 <h5 style="color: rgb(0, 106, 255);" class="members-title" id="members-title">Members ({{ group.members.count }})</h5>
-                <div class="moderators-dropdown" style="display: none;">
-                  {% for moderators in group.moderators.all %}
-                      <span class="badge badge-primary members-badge">{{ moderator.username }}</span>
-                  {% endfor %}
-              </div>
+                <h5 style="color: rgb(0, 106, 255);" class="moderators-title" id="moderators-title">Moderators ({{ group.moderators.count }})</h5>
+
                 <div class="members-dropdown" style="display: none;">
                     {% for member in group.members.all %}
                         <span class="badge badge-primary members-badge">{{ member.username }}</span>
@@ -60,67 +57,135 @@
     </div>
   <hr>
 
+  
+
   <!-- Group Post Creation Form -->
+  {% if request.user in group.members.all %}
   <div class="mb-3" id="group-post-creation-form">
-      <form method="post" action="{% url 'create_group_post' group.id %}">
-          {% csrf_token %}
+    <form method="post" action="{% url 'create_group_post' group.id %}">
+        {% csrf_token %}
 
-          <div id="media-upload-container" style="cursor: pointer;">
-              {{ form.as_p_with_icon }}
-          </div>
+        <div id="media-upload-container" style="cursor: pointer;">
+            <div style="position: relative;">
+                <i class="fas fa-camera" style="position: absolute; right: 10px; top: 80px; color:grey; z-index: 1;"></i>
+                <textarea name="content" class="form-control with-icon" rows="4" placeholder="Write your group post here..."></textarea>
+            </div>
+        </div>
 
-          <br>
-          <button type="submit" class="btn btn-primary">
-              <i class="fas fa-comment" style="font-size: 18px;"></i>
-              Create Group Post
-          </button>
-      </form>
+        <br>
+        <button type="submit" class="btn btn-primary">
+            <i class="fas fa-comment" style="font-size: 18px;"></i>
+            Create Group Post
+        </button>
+    </form>
   </div>
+{% endif %}
+
 
   <!-- Display Group Posts -->
+  <h3>Group Posts</h3>
   <div class="container" style="margin-top: 30px;">
         <div class="row">
           <div class="col-md-12">
-                {% for group_post in group.group_posts.all %}
-                  <div class="card mb-3">
-                      <div class="card-header">
-                          {% if group_post.is_reshared %}
-                              <p class="text-muted">Shared by:
-                                  <a href="{% url 'user_profile' group_post.reshared_by.username %}" class="text-primary">@{{ group_post.reshared_by.username }}</a>
-                              </p>
-                          {% endif %}
+            {% for group_post in group_posts %}
+            <div class="card mb-3">
+                <div class="card-header">
+                    {% if group_post.is_reshared %}
+                        <p class="text-muted">Shared by:
+                            <a href="{% url 'user_profile' group_post.reshared_by.username %}" class="text-primary">@{{ group_post.reshared_by.username }}</a>
+                        </p>
+                    {% endif %}
+        
+                    {% if group_post.author.profile_photo %}
+                        <img src="{{ group_post.author.profile_photo.url }}" alt="{{ group_post.author.username }} Profile Picture" class="profile-picture img-fluid rounded-circle mr-2" style="width: 40px; height: 40px; object-fit: cover;">
+                    {% endif %}
+                    <strong><a href="{% url 'user_profile' group_post.author.username %}">@{{ group_post.author }}</a></strong>
+                    <small class="text-muted">{{ group_post.created }}</small>
+                    <form method="post" action="{% url 'like_group_post' group.id group_post.id %}" style="display: inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-link">
+                            <i class="far fa-thumbs-up" style="color: blue;"></i>
+                        </button>
+                        <span>{{ group_post.likes.count }} likes</span>
+                    </form>
+                </div>
+        
+                <div class="card-body">
+                    <p class="card-text">{{ group_post.content }}</p>
+                    
+                    <!-- Comment form -->
+                    <form method="post" action="{% url 'create_group_comment' group.id group_post.id %}">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <input type="text" name="text" class="form-control" placeholder="Write your comment here" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-comment"></i> Add Comment
+                        </button>
+                    </form>
+                    <br>
+                    <!-- Group Post footer -->
+                    <!-- Group Post footer -->
+                    <div class="card-footer">
+                      <button class="btn btn-link view-comments-btn">
+                        View Comments ({{ group_post.groupcomment_set.count }})
+                      </button>
+                    </div>
 
-                          {% if group_post.author.profile_photo %}
-                              <img src="{{ group_post.author.profile_photo.url }}" alt="{{ group_post.author.username }} Profile Picture" class="profile-picture img-fluid rounded-circle mr-2" style="width: 40px; height: 40px; object-fit: cover;">
-                          {% endif %}
-                          <strong><a href="{% url 'user_profile' group_post.author.username %}">@{{ group_post.author }}</a></strong>
-                          <small class="text-muted">{{ group_post.created }}</small>
-                          <form method="post" action="{% url 'like_group_post' group.id group_post.id %}" style="display: inline;">
-                              {% csrf_token %}
-                              <button type="submit" class="btn btn-link">
-                                  <i class="far fa-thumbs-up" style="color: blue;"></i>
-                              </button>
-                              <span>{{ group_post.likes.count }} likes</span>
-                          </form>
-                      </div>
 
-                      <div class="card-body">
-                          <p class="card-text">{{ group_post.content }}</p>
-                      </div>
+                    <!-- Wrapper for comments -->
+                    <div class="comments-wrapper" style="display: none;">
+                      <!-- Display comments for the post -->
+                      <ul class="list-unstyled">
+                          {% for comment in group_post.groupcomment_set.all %}
+                              <li class="media">
+                                  <!-- Comment content... -->
+                                  <p>
+                                      <strong>{{ comment.user.username }}</strong>: {{ comment.text }}
+                                      <small class="text-muted">{{ comment.created }}</small> 
+                                      <!-- Add a "Delete" button for the comment -->
+                                      {% if comment.user == user %}
+                                          <form method="post" action="{% url 'delete_group_comment' group.id group_post.id comment.id %}" style="display: inline;">
+                                              {% csrf_token %}
+                                              &nbsp;
+                                              <button type="submit" class="btn btn-danger btn-sm">
+                                                  <i class="fas fa-trash-alt" style="font-size: 14px;"></i>
+                                              </button>
+                                          </form>
+                                      {% endif %}
+                                  </p>
+                              </li>
+                          {% endfor %}
+                      </ul>
+                    </div>
+                    <!-- jQuery script -->
+                    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
 
-                      <div class="card-footer">
-                          {% if group_post.author == user %}
-                              <form method="post" action="{% url 'delete_group_post' group.id group_post.id %}">
-                                  {% csrf_token %}
-                                  <button type="submit" class="btn btn-danger" style="background-color: #ff4f4f; color: #fff;">
-                                      <i class="fas fa-trash-alt" style="font-size: 14px;"></i>
-                                  </button>
-                              </form>
-                          {% endif %}
-                      </div>
-                  </div>
-                
-                {% endfor %}
+                    <script>
+                      $(document).ready(function () {
+                          $('.view-comments-btn').click(function () {
+                              // Toggle visibility of the comments wrapper
+                              $('.comments-wrapper').slideToggle();
+                          });
+                      });
+                    </script>
+
+
+                </div>
+              
+                <div class="card-footer">
+                    {% if group_post.author == user %}
+                        <form method="post" action="{% url 'delete_group_post' group.id group_post.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger" style="background-color: #ff4f4f; color: #fff;">
+                                <i class="fas fa-trash-alt" style="font-size: 14px;"></i>
+                            </button>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+        
             </div>
         </div>
         

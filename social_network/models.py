@@ -78,33 +78,6 @@ class User(AbstractUser):
 
 
 
-class Group(models.Model):
-    name = models.CharField(max_length=255, unique=True, default='')
-    bio = models.TextField(blank=True)
-    creator = models.ForeignKey(
-        'social_network.User',
-        on_delete=models.CASCADE,
-        related_name='created_groups',
-        null=True,
-        blank=True,
-        help_text='The user who created the group.'
-    )
-    members = models.ManyToManyField(
-        'social_network.User',
-        related_name='group_memberships',
-        blank=True,
-        help_text='Members of this group.'
-    )
-    moderators = models.ManyToManyField(
-        'social_network.User',
-        related_name='group_moderators',
-        blank=True,
-        help_text='Moderators of this group.'
-    )
-    group_photo = models.ImageField(upload_to='group_photos/', null=True, blank=True)
-    created = models.DateTimeField(default=timezone.now, editable=False, help_text='The date and time the group was created.')
-
-    
 
 
 
@@ -219,6 +192,43 @@ class Post(models.Model):
     
 
 
+
+
+
+
+class Group(models.Model):
+    name = models.CharField(max_length=255, unique=True, default='')
+    bio = models.TextField(blank=True)
+    creator = models.ForeignKey(
+        'social_network.User',
+        on_delete=models.CASCADE,
+        related_name='created_groups',
+        null=True,
+        blank=True,
+        help_text='The user who created the group.'
+    )
+    members = models.ManyToManyField(
+        'social_network.User',
+        related_name='group_memberships',
+        blank=True,
+        help_text='Members of this group.'
+    )
+    moderators = models.ManyToManyField(
+        'social_network.User',
+        related_name='group_moderators',
+        blank=True,
+        help_text='Moderators of this group.'
+    )
+    group_photo = models.ImageField(upload_to='group_photos/', null=True, blank=True)
+    created = models.DateTimeField(default=timezone.now, editable=False, help_text='The date and time the group was created.')
+
+
+    def __str__(self):
+        return self.name
+
+
+
+
 class Comment(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='comments')
@@ -251,7 +261,7 @@ class GroupPost(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE)
     group = models.ForeignKey(Group, on_delete=models.CASCADE)
     content = models.TextField(max_length=500)
-    created = models.DateTimeField(auto_now_add=True)
+    created = models.DateTimeField(auto_now_add=True,)
     likes = models.ManyToManyField(User, related_name='liked_group_posts', blank=True)
     dislikes = models.ManyToManyField(User, related_name='disliked_group_posts', blank=True)
     image = models.ImageField(upload_to='group_post_images/', null=True, blank=True)
@@ -259,10 +269,16 @@ class GroupPost(models.Model):
     reshared = models.BooleanField(default=False)  # Add this field
     media = models.OneToOneField(PostMedia, on_delete=models.CASCADE, null=True, blank=True)
 
+    class Meta:
+        ordering = ['-created']
+        
     def __str__(self):
-        formatted_time = self.created.strftime("%b %d, %Y %I:%M %p")
-        return f"@{self.author}'s group post- (' {self.content[:20]}..' ) {formatted_time}"
-
+        if self.created:
+            formatted_time = self.created.strftime("%b %d, %Y %I:%M %p")
+            return f"@{self.author}'s group post- (' {self.content[:20]}..' ) {formatted_time} in {self.group}"
+        else:
+            return f"@{self.author}'s group post- (' {self.content[:20]}..' ) (No creation time available)"
+    
     def mark_as_reshared(self):
         self.reshared = True
         self.save()
@@ -276,3 +292,19 @@ class GroupPost(models.Model):
         if self.media:
             self.media.delete()
         super().delete(*args, **kwargs)
+
+    
+
+
+
+
+
+
+class GroupComment(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, )
+    group_post = models.ForeignKey(GroupPost, on_delete=models.CASCADE, default='')
+    text = models.TextField()
+    created = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username}'s comment on {self.group_post.author}'s group post"

@@ -24,7 +24,7 @@ from django.db.models import Q
 import random
 from django.contrib.auth.models import User
 from django.http import Http404
-from .models import Post , Comment , Mention, Message, ResharedPost 
+from .models import Post , Comment , Mention, Message, ResharedPost , GroupComment
 from .forms import PostForm , FollowForm , CommentForm , ProfilePhotoForm, PostMediaForm
 from django.db.models import F
 from django.contrib import messages
@@ -48,11 +48,13 @@ from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 from django.conf import settings
 from django.core.mail import send_mail
-from .forms import GroupForm, GroupPostForm, PostForm
+from .forms import GroupForm, PostForm
 from .models import Group, GroupPost
 from django.utils.text import capfirst
 from .forms import GroupUpdateForm
 from django.contrib import messages
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
 
 
 
@@ -155,33 +157,11 @@ def index(request):
 
     # Use display_index_posts to get the posts
     posts = display_index_posts(request)
-    # Get the reshared posts by user and user's followings
-    reshared_posts = ResharedPost.objects.filter(Q(user=request.user) | Q(user__in=request.user.following.all()))
-
+    
     form = PostForm()  # Include the form for creating a new post
 
-    if request.method == "POST":
-        # Check the age
-        birthday_year = int(request.POST['birthday_year'])
-        current_year = datetime.now().year
-        age = current_year - birthday_year
-
-        if age < 13:
-            # Reject users under 13
-            return render(request, 'signup.html', {'error_message': 'You must be at least 13 years old to sign up.'})
-
-        # Check if the form is a signup form
-        if 'signup' in request.POST:
-            signup_form = SignupForm(request.POST)
-            if signup_form.is_valid():
-                # Process the signup form
-                # ...
-
-                # After signup, don't show signup content
-                return redirect('index')
-
     # Pass the correct context to render
-    context = {'form': form, 'home_link_clicked': home_link_clicked, 'posts': posts, 'reshared_posts': reshared_posts}
+    context = {'form': form, 'home_link_clicked': home_link_clicked, 'posts': posts, }
     return render(request, 'social_network/index.html', context)
 
 
@@ -760,7 +740,7 @@ def display_index_posts(request):
         combined_posts.append(post)
 
     # Order the posts by the created timestamp in descending order
-    all_posts = sorted(combined_posts, key=lambda post: post.created, reverse=True)
+    all_posts = sorted(combined_posts, key=attrgetter('created'), reverse=True)
 
     return all_posts
 
@@ -1105,16 +1085,16 @@ def update_group(request, group_id):
 
 
 
-
-
-@login_required
+@login_required(login_url='login')
 def view_group(request, group_id):
+    user = request.user
     group = get_object_or_404(Group, id=group_id)
-    return render(request, 'social_network/view_group.html', {'group': group})
+    group_posts = group.grouppost_set.all()
 
-
-
-
+    return render(request, 'social_network/view_group.html', {
+        'group': group,
+        'group_posts': group_posts,
+    })
 
 
 
@@ -1125,36 +1105,33 @@ def create_group_post(request, group_id):
 
     # Check if the user is a member of the group
     if not group.members.filter(pk=user.pk).exists():
+        print("User is not a member of this group.")
         return HttpResponse("You are not a member of this group.")
 
     if request.method == 'POST':
-        form = GroupPostForm(request.POST)
+        content = request.POST.get('content', '')
         media_form = PostMediaForm(request.POST, request.FILES)
-        if form.is_valid():
-            group_post = form.save(commit=False)
-            group_post.author = user
-            group_post.group = group
-            group_post.save()
 
-            media = media_form.save()
-            group_post.media = media
-            group_post.save()
+        if content:
+            group_post = GroupPost(author=user, group=group, content=content)
 
-            # Extract mentions from the group post content
-            mentioned_users = find_mentions(group_post.content)
+            if media_form.is_valid():
+                media = media_form.save(commit=False)
+                media.group_post = group_post
+                media.save()
+                group_post.media = media
 
-            # Save mentions in the Mention model
-            for mentioned_user in mentioned_users:
-                Mention.objects.create(group_post=group_post, user=user)
+            try:
+                group_post.save()
+                print("GroupPost saved successfully.")
+            except Exception as e:
+                print(f"Error saving GroupPost: {e}")
 
-            # Redirect back to the group page
+            # Redirect to the view_group page after creating the post
             return redirect('view_group', group_id=group.id)
 
-    # Handle the case where the form is not valid or when the request method is not POST
-    # You might want to add additional context or logic here
-    return HttpResponse("An error occurred while creating the group post.")
-
-
+    # Pass the group to the context when rendering the template
+    return render(request, 'social_network/view_group.html', {'group': group})
 
 
 
@@ -1165,8 +1142,12 @@ def group_posts(request, group_id):
     group = get_object_or_404(Group, id=group_id)
     form = GroupPostForm()
 
-    context = {'group': group, 'form': form}
+    # Fetch group posts in descending order of time created
+    group_posts = group.grouppost_set.all().order_by('-created')
+
+    context = {'group': group, 'form': form, 'group_posts': group_posts}
     return render(request, 'social_network/group_posts.html', context)
+
 
 
 
@@ -1211,6 +1192,49 @@ def like_group_post(request, group_id, group_post_id):
         group_post.likes.add(request.user)
 
     return redirect('view_group', group_id=group_id)  # You can redirect to the group post details or another page
+
+
+
+
+@login_required(login_url='login')
+def create_group_comment(request, group_id, group_post_id):
+    user = request.user
+    group = get_object_or_404(Group, id=group_id)
+    group_post = get_object_or_404(GroupPost, id=group_post_id, group=group)
+
+    if request.method == 'POST':
+        comment_text = request.POST.get('text', '')
+        if comment_text:
+            group_comment = GroupComment.objects.create(user=user, group_post=group_post, text=comment_text)
+            return redirect('view_group', group_id=group.id)
+
+    # Handle the case where the form is not valid or when the request method is not POST
+    # You might want to add additional context or logic here
+    return render(request, 'social_network/view_group.html', {
+        'group': group,
+        'group_post': group_post,
+        # Other context variables
+    })
+
+
+
+
+
+@login_required(login_url='login')
+def delete_group_comment(request, group_id, group_post_id, comment_id):
+    user = request.user
+    group = get_object_or_404(Group, id=group_id)
+    group_post = get_object_or_404(GroupPost, id=group_post_id, group=group)
+    comment = get_object_or_404(GroupComment, id=comment_id, group_post=group_post, user=user)
+
+    # Check if the user is the creator of the group, a moderator, or the author of the comment
+    if user == group.creator or user in group.moderators.all() or user == comment.user:
+        if request.method == 'POST':
+            comment.delete()
+            return redirect('view_group', group_id=group.id)
+
+    return redirect('view_group', group_id=group.id)  # Redirect to the group view
+
 
 
 
@@ -1326,12 +1350,7 @@ def signup(request):
         email = request.POST["email"]
         #student_email = request.POST["student_email"]
         password = request.POST["password"]
-        confirmation = request.POST["confirmation"]
-
-        if password != confirmation:
-            return render(request, "social_network/signup.html", {
-                "message": "Passwords must match."
-            })
+        
 
         # Check if the user has agreed to the terms
         agree_to_terms = request.POST.get("agree_to_terms")
