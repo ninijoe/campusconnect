@@ -1,5 +1,5 @@
 {% extends "social_network/layout.html" %}
-
+{% load static%}
 <!-- Add this within the head section of your HTML template -->
 <style>
   .edit-group-btn {
@@ -24,9 +24,9 @@
       <div class="col-md-6">
           <div class="group-info">
               <h2 class="group-name" style="display: inline-block; margin-right: 10px;">{{ group.name|title }}</h2>
-              {% if request.user == group.creator or request.user in group.moderators.all %}
+              {% if request.user == group.creator  %}
                 <a href="{% url 'group_settings' group.id %}">
-                  <i class="fas fa-cogs"></i> Group Settings
+                  <i class="fas fa-cogs"></i>Settings 
                 </a>
               {% endif %}
 
@@ -46,7 +46,6 @@
 
               <div class="members mt-4">
                 <h5 style="color: rgb(0, 106, 255);" class="members-title" id="members-title">Members ({{ group.members.count }})</h5>
-                <h5 style="color: rgb(0, 106, 255);" class="moderators-title" id="moderators-title">Moderators ({{ group.moderators.count }})</h5>
 
                 <div class="members-dropdown" style="display: none;">
                     {% for member in group.members.all %}
@@ -69,6 +68,17 @@
       </div>
 
     </div>
+    <h5 style="color: rgb(0, 106, 255);" class="moderators-title toggle-title" id="moderators-title">Moderators ({{ group.moderators.count }})</h5>
+
+    <script>
+        $(document).ready(function () {
+            $('.toggle-title').click(function () {
+                var dropdown = $(this).next('.toggle-dropdown');
+                dropdown.toggle();
+            });
+        });
+    </script>
+    
   <hr>
 
   
@@ -104,12 +114,7 @@
             {% for group_post in group_posts %}
             <div class="card mb-3">
                 <div class="card-header">
-                    <!-- Shared by info -->
-                    {% if group_post.is_reshared %}
-                        <p class="text-muted">Shared by:
-                            <a href="{% url 'user_profile' group_post.reshared_by.username %}" class="text-primary">@{{ group_post.reshared_by.username }}</a>
-                        </p>
-                    {% endif %}
+                    
                     
                     <!-- Author profile photo -->
                     {% if group_post.author.profile_photo %}
@@ -144,6 +149,7 @@
                             <i class="fas fa-comment"></i> Add Comment
                         </button>
                     </form>
+                    <br>
                     {% endif %}
 
 
@@ -157,6 +163,13 @@
                         <li class="media">
                           <!-- Comment content... -->
                           <p>
+                            <!-- Author profile photo -->
+                            {% if comment.user.profile_photo %}
+                                <img src="{{ comment.user.profile_photo.url }}" alt="{{ comment.user.username }} Profile Picture" class="profile-picture img-fluid rounded-circle mr-2" style="width: 40px; height: 40px; object-fit: cover;">
+                            {% else %}
+                                <i class="fas fa-user-circle fa-2x text-secondary" id="profile-photo-placeholder"></i>
+                            {% endif %}
+
                             <strong>{{ comment.user.username }}</strong>: {{ comment.text }}
                             <small class="text-muted">{{ comment.created }}</small>
                             <!-- Add a "Delete" button for the comment -->
@@ -193,6 +206,7 @@
                     {% endif %}
                 </div>
             </div>
+            <br>
             {% endfor %}
         </div>
     </div>

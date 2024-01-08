@@ -7,6 +7,7 @@ from django.contrib.auth import authenticate
 from django.contrib.auth.forms import PasswordResetForm
 from django.utils.safestring import mark_safe
 from .models import Group, GroupPost
+import bleach
 
 class GroupForm(forms.ModelForm):
     class Meta:
@@ -123,6 +124,8 @@ class PostForm(forms.ModelForm):
                          '<i class="fas fa-camera" style="position: absolute; right: 10px; top: 80px; color:grey; z-index: 1;"></i>' +
                          str(self) +
                          '</div>')
+    
+    
     
 
 

@@ -1129,9 +1129,7 @@ def make_moderator(request, group_id):
 
         if member not in group.moderators.all():
             group.moderators.add(member)
-            messages.success(request, f'{member.username} is now a moderator.')
-        else:
-            messages.info(request, f'{member.username} is already a moderator.')
+        
 
     return redirect('group_settings', group_id=group.id)
 
@@ -1153,10 +1151,7 @@ def remove_moderator(request, group_id, moderator_id):
 
     if moderator in group.moderators.all():
         group.moderators.remove(moderator)
-        messages.success(request, f'{moderator.username} is no longer a moderator.')
-    else:
-        messages.info(request, f'{moderator.username} is not a moderator.')
-
+    
     return redirect('group_settings', group_id=group.id)
 
 
@@ -1177,7 +1172,6 @@ def update_group_privacy(request, group_id):
     if request.method == 'POST':
         group.is_private = not group.is_private
         group.save()
-        messages.success(request, 'Group privacy updated successfully.')
 
     return redirect('group_settings', group_id=group.id)
 
@@ -1251,6 +1245,10 @@ def view_group(request, group_id):
         'group': group,
         'group_posts': group_posts,
     })
+
+
+
+
 
 
 @login_required(login_url='login')
