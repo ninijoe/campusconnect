@@ -221,17 +221,18 @@
                 <div class="card-body" style="background-color: rgb(250, 248, 248);">
                     <p class="card-text">{{ post.content }}</p>
                     <!-- Display media if it exists -->
-                    {% if post.media %}
-                        {% if post.media.photo %}
-                            <img src="{{ post.media.photo.url }}" alt="Post Media" class="img-fluid " style="max-width: 30%; max-height: 30%;" >
-                        {% endif %}
-                        {% if post.media.video %}
+                    <!-- Display photo if it exists -->
+                            {% if post.photo %}
+                            <div class="text-center">
+                                <img src="{{ post.photo.url }}" alt="Post Photo" class="img-fluid mx-auto" style="max-width: 30%; max-height: 30%;">
+                              </div>
+                           {% endif %}
+
+                            {% if post.video %}
                             <!-- Add video embedding code here if needed -->
-                        {% endif %}
-                        <!-- Add tags and location display if needed -->
-                        <p>Tags: {{ post.media.tags }}</p>
-                        <p>Location: {{ post.media.location }}</p>
-                    {% endif %}
+                            {% endif %}
+
+                            
 
                     <a href="#commentsCollapse{{ post.id }}" data-toggle="collapse" style="text-decoration: none;">
                         <p class="card-text">
@@ -293,6 +294,14 @@
                         </ul>
                     </div>
                 </div>
+                <!-- Add tags and location display if needed -->
+                {% if post.tags %}
+                <p>Tags: {{ post.tags }}</p>
+            {% endif %}
+
+            {% if post.location %}
+                <p>Location: {{ post.location }}</p>
+            {% endif %}
                 {% if post.author == user %}
                 <div class="card-footer">
                     <form method="post" action="{% url 'delete_post' post.id %}">

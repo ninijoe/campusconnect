@@ -110,14 +110,22 @@
                                     </script>
                                 {% else %}
                                     {% if request.user not in group.members.all %}
-                                        <a href="{% url 'join_group' group.id %}" class="btn btn-success">
-                                            <i class="fas fa-user-plus"></i> Join Group
-                                        </a>
+                                        {% if has_pending_request %}
+                                            <button class="btn btn-secondary" disabled>
+                                                <i class="fas fa-hourglass"></i> Pending
+                                            </button>
+                                        {% else %}
+                                            <a href="{% url 'join_group' group.id %}" class="btn btn-success">
+                                                <i class="fas fa-user-plus"></i> Join Group
+                                            </a>
+                                        {% endif %}
                                     {% else %}
                                         <a href="{% url 'leave_group' group.id %}" class="btn btn-danger">
                                             <i class="fas fa-user-minus"></i> Leave Group
                                         </a>
                                     {% endif %}
+                            
+                            
                                 {% endif %}
                             </td>
 

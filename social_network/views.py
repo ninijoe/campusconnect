@@ -1013,14 +1013,13 @@ def search_group(request):
 
 
 
-
-
-
-
 @login_required
 def groups(request):
     # Your existing logic to retrieve groups
     groups = Group.objects.all()
+
+    # Create a dictionary to store whether the user has a pending request for each group
+    has_pending_request = {group.id: JoinRequest.objects.filter(user=request.user, group=group).exists() for group in groups}
 
     # Create an instance of GroupForm to pass to the template
     form = GroupForm()
@@ -1028,9 +1027,13 @@ def groups(request):
     context = {
         'groups': groups,
         'form': form,  # Include the form in the context
+        'has_pending_request': has_pending_request,
     }
 
     return render(request, 'social_network/groups.html', context)
+
+
+
 
 
 
@@ -1044,15 +1047,21 @@ def join_group(request, group_id):
     group = get_object_or_404(Group, id=group_id)
 
     if group.is_private:
-        # For private groups, send join request
-        JoinRequest.objects.create(user=request.user, group=group)
+        # Check if the user already has a pending join request
+        has_pending_request = JoinRequest.objects.filter(user=request.user, group=group).exists()
+        print (has_pending_request)
+        if not has_pending_request:
+            # For private groups, send join request
+            JoinRequest.objects.create(user=request.user, group=group)
+            return render(request, 'social_network/groups.html', {'has_pending_request': has_pending_request ,'user': request.user, 'groupid': group.id})
+
     else:
-        # For public groups, add user directly
+        # For public groups, add the user directly
         group.members.add(request.user)
         return redirect('view_group', group_id=group.id)
-    
-    return redirect('groups', group_id=group.id)
-    
+
+    # If none of the conditions were met, redirect to 'groups' without changing the has_pending_request status
+    return redirect('groups')
 
 
 
@@ -1066,11 +1075,10 @@ def leave_group(request, group_id):
     group = get_object_or_404(Group, id=group_id)
 
     if request.user == group.creator:
-        messages.error(request, "The group creator cannot leave the group.")
+        return
     else:
         group.members.remove(request.user)
         group.moderators.remove(request.user)
-        messages.success(request, 'You have left the group.')
 
     return redirect('groups')  # Redirect to the group listing page or another appropriate page
 
@@ -1242,7 +1250,7 @@ def update_group(request, group_id):
 
 
 @login_required(login_url='login')
-def view_group(request, group_id):
+def view_group(request, group_id, has_pending_request=False):
     user = request.user
     group = get_object_or_404(Group, id=group_id)
     group_posts = group.grouppost_set.all()
@@ -1250,12 +1258,14 @@ def view_group(request, group_id):
     return render(request, 'social_network/view_group.html', {
         'group': group,
         'group_posts': group_posts,
+        'has_pending_request': has_pending_request,
+
     })
 
 
 
+# ... (Other imports)
 
-# views.py
 @login_required(login_url='login')
 def create_group_post(request, group_id):
     user = request.user
@@ -1280,14 +1290,18 @@ def create_group_post(request, group_id):
         if video:
             group_post.video = video
 
-        if tags: 
-            group_post.tags = tags
-
-        if location:
-            group_post.location = location
-
         try:
-            group_post.save()
+            group_post.save()  # Save the GroupPost instance first
+
+            # Set tags using set() method for many-to-many relationship
+            if tags:
+                group_post.tags.set(tags.split(','))
+
+            if location:
+                group_post.location = location
+
+            group_post.save()  # Save the GroupPost instance after setting tags
+
             print("GroupPost saved successfully.")
         except Exception as e:
             print(f"Error saving GroupPost: {e}")
@@ -1295,6 +1309,9 @@ def create_group_post(request, group_id):
         return redirect('view_group', group_id=group.id)
 
     return render(request, 'social_network/view_group.html', {'group': group})
+
+
+
 
 @login_required(login_url='login')
 def group_posts(request, group_id):

@@ -155,9 +155,7 @@ class Post(models.Model):
     # Include PostMedia fields directly
     photo = models.ImageField(upload_to='post_media/', null=True, blank=True)
     video = models.FileField(upload_to='post_media/', null=True, blank=True)
-    tags = models.CharField(max_length=255, null=True, blank=True)
-    location = models.CharField(max_length=255, null=True, blank=True)
-
+    
 
     def __str__(self):
         formatted_time = self.created.strftime("%b %d, %Y %I:%M %p")
@@ -273,9 +271,7 @@ class GroupPost(models.Model):
     # Include PostMedia fields directly
     photo = models.ImageField(upload_to='post_media/', null=True, blank=True)
     video = models.FileField(upload_to='post_media/', null=True, blank=True)
-    tags = models.CharField(max_length=255, null=True, blank=True)
-    location = models.CharField(max_length=255, null=True, blank=True)
-
+    
 
 
     class Meta:

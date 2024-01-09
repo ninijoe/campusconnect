@@ -95,7 +95,7 @@ class DepartmentForm(forms.Form):
 class PostForm(forms.ModelForm):
     class Meta:
         model = Post
-        fields = ['content', 'photo', 'video', 'tags', 'location']
+        fields = ['content', 'photo', 'video']
 
     content = forms.CharField(
         widget=forms.Textarea(attrs={'class': 'form-control', 'rows': '4', 'placeholder': 'Write your post here...'}),
@@ -106,25 +106,30 @@ class PostForm(forms.ModelForm):
     def as_p_with_icon(self):
         return mark_safe(''.join([
             '<div class="form-group">',
+            '<label for="id_content" class="col-form-label">Content:</label>',
+            '<div class="input-group">',
             str(self['content']),  # Render the content field
             '</div>',
+            '</div>',
+
             '<div class="form-group">',
-            '<label for="id_photo">Photo: </label>',
+            '<label for="id_photo" class="col-form-label">Photo:</label>',
+            '<div class="input-group">',
             str(self['photo']),  # Render photo field in its own row
             '</div>',
+            '</div>',
+
             '<div class="form-group">',
-            '<label for="id_video">Video: </label>',
+            '<label for="id_video" class="col-form-label">Video:</label>',
+            '<div class="input-group">',
             str(self['video']),  # Render video field in its own row
             '</div>',
-            '<div class="form-group">',
-            '<label for="id_tags">Tags: </label>',
-            str(self['tags']),  # Render tags field in its own row
             '</div>',
-            '<div class="form-group">',
-            '<label for="id_location">Location: </label>',
-            str(self['location']),  # Render location field in its own row
-            '</div>',
+
+            
         ]))
+
+
     
     
 

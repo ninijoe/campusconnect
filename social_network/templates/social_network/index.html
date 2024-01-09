@@ -14,10 +14,16 @@
 
 
 {% block main_content %}
-<h1>Home </h1>
+<div class="d-flex align-items-center justify-content-between">
+    <h1 class="mr-3">Home</h1>
+    <a href="#" id="write-post-link" class="btn btn-primary">
+        <i class="fas fa-edit"></i> <!-- Replace 'fa-edit' with the appropriate Font Awesome icon class -->
+    </a>
+</div>
+
 <hr>
 
-<h3>Create Post </h3>
+
 
 
 <div class="row justify-content-center">
@@ -33,7 +39,11 @@
 <div class="mb-3" id="post-creation-form">
     <div class="mb-3" id="post-creation-form">
         <!-- Add a link to trigger the form visibility toggle -->
-<a href="#" id="write-post-link">Write a Post</a>
+
+
+
+
+
 
 <!-- Add the form with an initial style to hide it -->
 <form method="post" action="{% url 'create_post' %}" enctype="multipart/form-data" id="post-form" style="display: none;">
@@ -43,9 +53,13 @@
     </div>
     <br>
     <button type="submit" class="btn btn-primary">
-        <i class="fas fa-comment" style="font-size: 18px;"></i> Create Post
+        <i class="fas fa-comment" style="font-size: 18px;"></i> 
     </button>
 </form>
+
+
+
+
 
 <!-- Add JavaScript to handle visibility toggle -->
 <script>
@@ -71,6 +85,7 @@
         transform: translateY(0);
       }
     }
+    
   </style>
         
     </div>
@@ -81,7 +96,7 @@
         <div class="col-md-13 ">
             
                     {% for post in posts %}
-                        <div class="card mb-3" style="border: 1.5px solid #ccc;   width: 130%; max-width: none;">
+                        <div class="card mb-3" style="border: 1.5px solid #ccc;   width: 100%; max-width: none;">
                             <div class="card-header">
                                 {% if post.is_reshared %}
                                     
@@ -126,7 +141,7 @@
                             <p class="card-text">{{ post.content }}</p>
                             <!-- Display photo if it exists -->
                             {% if post.photo %}
-                            <div class="text-center">
+                            <div class="">
                                 <img src="{{ post.photo.url }}" alt="Post Photo" class="img-fluid mx-auto" style="max-width: 30%; max-height: 30%;">
                               </div>
                            {% endif %}
