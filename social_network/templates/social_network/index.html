@@ -2,6 +2,12 @@
 
 {% extends "social_network/layout.html" %}
 
+{% load static %}
+
+<!-- Add this to load static files -->
+<script type="text/javascript" src="{% static 'js/jquery-3.6.4.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/post_form.js' %}"></script>
+
 
 <!-- Add this in the head of your HTML file -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -26,18 +32,46 @@
 <!-- Post Creation Form -->
 <div class="mb-3" id="post-creation-form">
     <div class="mb-3" id="post-creation-form">
-        <form method="post" action="{% url 'create_post' %}">
-            {% csrf_token %}
-            
-            <div id="media-upload-container" style="cursor: pointer;">
-                {{ form.as_p_with_icon }}
-            </div>
+        <!-- Add a link to trigger the form visibility toggle -->
+<a href="#" id="write-post-link">Write a Post</a>
 
-            <br>
-            <button type="submit" class="btn btn-primary">            
-                <i class="fas fa-comment" style="font-size: 18px;"></i>
-            </button>
-        </form>
+<!-- Add the form with an initial style to hide it -->
+<form method="post" action="{% url 'create_post' %}" enctype="multipart/form-data" id="post-form" style="display: none;">
+    <div class="form-group">
+        {% csrf_token %}
+        {{ form.as_p_with_icon }}
+    </div>
+    <br>
+    <button type="submit" class="btn btn-primary">
+        <i class="fas fa-comment" style="font-size: 18px;"></i> Create Post
+    </button>
+</form>
+
+<!-- Add JavaScript to handle visibility toggle -->
+<script>
+    document.getElementById('write-post-link').addEventListener('click', function () {
+        var form = document.getElementById('post-form');
+        form.style.display = (form.style.display === 'none' || form.style.display === '') ? 'block' : 'none';
+    });
+</script>
+<style>
+    #post-form {
+      display: none;
+      animation: slideIn 0.5s ease-out;
+    }
+  
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+  
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
         
     </div>
     
@@ -47,7 +81,7 @@
         <div class="col-md-13 ">
             
                     {% for post in posts %}
-                        <div class="card mb-3" style="border: 1.5px solid #ccc;  margin-left: 0px; margin-right: 0px; width: 128%; max-width: none;">
+                        <div class="card mb-3" style="border: 1.5px solid #ccc;   width: 130%; max-width: none;">
                             <div class="card-header">
                                 {% if post.is_reshared %}
                                     
@@ -90,6 +124,18 @@
                         
                         <div class="card-body" style="background-color: rgb(251, 247, 247);">
                             <p class="card-text">{{ post.content }}</p>
+                            <!-- Display photo if it exists -->
+                            {% if post.photo %}
+                            <div class="text-center">
+                                <img src="{{ post.photo.url }}" alt="Post Photo" class="img-fluid mx-auto" style="max-width: 30%; max-height: 30%;">
+                              </div>
+                           {% endif %}
+
+                            {% if post.video %}
+                            <!-- Add video embedding code here if needed -->
+                            {% endif %}
+
+                            
                             <p class="card-text">
                                 <a href="#commentsCollapse{{ post.id }}" data-toggle="collapse" style="text-decoration: none;">
                                     <p class="card-text">
@@ -153,6 +199,14 @@
                 </div>
                 {% if post.author == user %}
                 <div class="card-footer">
+                    <!-- Add tags and location display if needed -->
+                    {% if post.tags %}
+                    <p>Tags: {{ post.tags }}</p>
+                {% endif %}
+
+                {% if post.location %}
+                    <p>Location: {{ post.location }}</p>
+                {% endif %}
                     <form method="post" action="{% url 'delete_post' post.id %}">
                         {% csrf_token %}
                         <button type="submit" class="btn btn-danger" style="background-color: #ff4f4f; color: #fff;">                <i class="fas fa-trash-alt" style="font-size: 14px;"></i>
@@ -165,19 +219,19 @@
         </div>
     </div>
 </div>
+<!-- Add this script at the bottom of your template to handle media addition -->
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        var cameraIcon = document.getElementById("camera-icon");
-        var mediaInputField = document.getElementById("media-input-field");
+    $(document).ready(function () {
+        $('.add-media-btn').click(function () {
+            var mediaContainer = $(this).siblings('.media-form');
+            var mediaPreview = mediaContainer.find('.media-preview');
 
-        cameraIcon.addEventListener("click", function (event) {
-            event.preventDefault(); // Prevent the default behavior (e.g., following the link)
-
-            // Show the media input field
-            mediaInputField.style.display = 'block';
+            // Handle media addition here (e.g., show a modal, etc.)
+            console.log('Add Media button clicked');
         });
     });
 </script>
+
 
 {% endblock %}
 

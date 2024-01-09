@@ -138,22 +138,7 @@ class ResharedPost(models.Model):
 
 
 
-class PostMedia(models.Model):
-    photo = models.ImageField(upload_to='post_media/', null=True, blank=True)
-    video = models.FileField(upload_to='post_media/', null=True, blank=True)
-    tags = models.CharField(max_length=255, null=True, blank=True)
-    location = models.CharField(max_length=255, null=True, blank=True)
 
-    def __str__(self):
-        return f"PostMedia - ID: {self.id}"
-
-    def delete(self, *args, **kwargs):
-        # Delete associated media files from storage
-        if self.photo:
-            self.photo.delete(save=False)
-        if self.video:
-            self.video.delete(save=False)
-        super().delete(*args, **kwargs)
 
 
 
@@ -165,10 +150,13 @@ class Post(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     likes = models.ManyToManyField(User, related_name='liked_posts', blank=True)
     dislikes = models.ManyToManyField(User, related_name='disliked_posts', blank=True)
-    image = models.ImageField(upload_to='post_images/', null=True, blank=True)
     reshare_count = models.PositiveIntegerField(default=0)
     reshared = models.BooleanField(default=False)  # Add this field
-    media = models.OneToOneField(PostMedia, on_delete=models.CASCADE, null=True, blank=True)
+    # Include PostMedia fields directly
+    photo = models.ImageField(upload_to='post_media/', null=True, blank=True)
+    video = models.FileField(upload_to='post_media/', null=True, blank=True)
+    tags = models.CharField(max_length=255, null=True, blank=True)
+    location = models.CharField(max_length=255, null=True, blank=True)
 
 
     def __str__(self):
@@ -185,8 +173,11 @@ class Post(models.Model):
 
     def delete(self, *args, **kwargs):
         # Delete associated media when post is deleted
-        if self.media:
-            self.media.delete()
+        if self.photo:
+            self.photo.delete()
+        elif self.video:
+            self.video.delete()
+            
         super().delete(*args, **kwargs)
 
     
@@ -277,10 +268,15 @@ class GroupPost(models.Model):
     created = models.DateTimeField(auto_now_add=True,)
     likes = models.ManyToManyField(User, related_name='liked_group_posts', blank=True)
     dislikes = models.ManyToManyField(User, related_name='disliked_group_posts', blank=True)
-    image = models.ImageField(upload_to='group_post_images/', null=True, blank=True)
     reshare_count = models.PositiveIntegerField(default=0)
     reshared = models.BooleanField(default=False)  # Add this field
-    media = models.OneToOneField(PostMedia, on_delete=models.CASCADE, null=True, blank=True)
+    # Include PostMedia fields directly
+    photo = models.ImageField(upload_to='post_media/', null=True, blank=True)
+    video = models.FileField(upload_to='post_media/', null=True, blank=True)
+    tags = models.CharField(max_length=255, null=True, blank=True)
+    location = models.CharField(max_length=255, null=True, blank=True)
+
+
 
     class Meta:
         ordering = ['-created']
@@ -301,9 +297,12 @@ class GroupPost(models.Model):
         self.save()
 
     def delete(self, *args, **kwargs):
-        # Delete associated media when group post is deleted
-        if self.media:
-            self.media.delete()
+        # Delete associated media when post is deleted
+        if self.photo:
+            self.photo.delete()
+        elif self.video:
+            self.video.delete()
+            
         super().delete(*args, **kwargs)
 
     

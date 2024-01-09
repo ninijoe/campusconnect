@@ -1,12 +1,12 @@
 from django import forms
 from .models import User
 from .models import Post
-from .models import Comment, PostMedia 
+from .models import Comment
 from django.contrib.auth.forms import UserChangeForm , PasswordChangeForm
 from django.contrib.auth import authenticate
 from django.contrib.auth.forms import PasswordResetForm
 from django.utils.safestring import mark_safe
-from .models import Group, GroupPost
+from .models import Group
 import bleach
 
 class GroupForm(forms.ModelForm):
@@ -86,19 +86,8 @@ class DepartmentForm(forms.Form):
 
 
 
-class PostMediaForm(forms.ModelForm):
-    class Meta:
-        model = PostMedia
-        fields = ['photo', 'video', 'tags', 'location']
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # Add classes or attributes to your form fields if needed
-
-    def as_p(self):
-        return mark_safe(str(self))
     
-
 
 
 
@@ -106,25 +95,36 @@ class PostMediaForm(forms.ModelForm):
 class PostForm(forms.ModelForm):
     class Meta:
         model = Post
-        fields = ['content']
+        fields = ['content', 'photo', 'video', 'tags', 'location']
 
     content = forms.CharField(
-        widget=forms.Textarea(attrs={'class': 'form-control with-icon', 'rows': '4', 'placeholder': 'Write your post here...'}),
+        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': '4', 'placeholder': 'Write your post here...'}),
         label='',
     )
 
-    media_form = PostMediaForm()  # Include the media form as a field
-
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-    def as_p_with_icon(self):
-        return mark_safe('<div style="position: relative;">' +
-                         '<i class="fas fa-camera" style="position: absolute; right: 10px; top: 80px; color:grey; z-index: 1;"></i>' +
-                         str(self) +
-                         '</div>')
     
+    def as_p_with_icon(self):
+        return mark_safe(''.join([
+            '<div class="form-group">',
+            str(self['content']),  # Render the content field
+            '</div>',
+            '<div class="form-group">',
+            '<label for="id_photo">Photo: </label>',
+            str(self['photo']),  # Render photo field in its own row
+            '</div>',
+            '<div class="form-group">',
+            '<label for="id_video">Video: </label>',
+            str(self['video']),  # Render video field in its own row
+            '</div>',
+            '<div class="form-group">',
+            '<label for="id_tags">Tags: </label>',
+            str(self['tags']),  # Render tags field in its own row
+            '</div>',
+            '<div class="form-group">',
+            '<label for="id_location">Location: </label>',
+            str(self['location']),  # Render location field in its own row
+            '</div>',
+        ]))
     
     
 

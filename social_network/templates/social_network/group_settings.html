@@ -12,7 +12,7 @@
         {% endif %}
       </div>
     </div>
-
+    <hr>
     {% if request.user == group.creator or request.user in group.moderators.all %}
       <!-- Join Requests Section -->
       <div class="settings-section mt-4">
@@ -29,7 +29,7 @@
           </div>
         {% endfor %}
       </div>
-
+      <hr>
       <!-- Group Privacy Section -->
       <div class="settings-section mt-4">
         <h3 class="text-primary">Group Privacy</h3>
@@ -41,7 +41,7 @@
           </button>
         </form>
       </div>
-
+      <hr>
       <!-- Moderators Section -->
         <div class="settings-section mt-4">
             <h3 class="text-primary">Moderators</h3>
@@ -57,7 +57,7 @@
             </ul>
         </div>
   
-
+        <hr>
       <!-- Make Member a Moderator Section -->
       <div class="settings-section mt-4">
         <h3 class="text-primary">Make Member a Moderator</h3>
@@ -74,6 +74,7 @@
           <button type="submit" class="btn btn-success">Make Moderator</button>
         </form>
       </div>
+      <hr>
     {% endif %}
   </div>
 {% endblock %}

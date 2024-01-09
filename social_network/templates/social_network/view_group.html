@@ -82,28 +82,78 @@
   <hr>
 
   
+<!-- Group Post Creation Form -->
+{% if request.user in group.members.all %}
+<!-- HTML Template -->
+<div class="mb-3" id="group-post-creation-form">
+  <a href="#" id="write-post-link">Write a Post</a>
+  <form method="post" action="{% url 'create_group_post' group.id %}" enctype="multipart/form-data" id="group-post-form" style="display: none;">
+    {% csrf_token %}
+    
+    <label for="id_content">Content:</label>
+    <textarea name="content" class="form-control with-icon" rows="4" placeholder="Write your post here..."></textarea>
+    <br>
+    
+    <label for="id_photo">Photo:</label>
+    <input type="file" name="photo" class="form-control">
+    <br>
 
-  <!-- Group Post Creation Form -->
-  {% if request.user in group.members.all %}
-  <div class="mb-3" id="group-post-creation-form">
-    <form method="post" action="{% url 'create_group_post' group.id %}">
-        {% csrf_token %}
+    <label for="id_video">Video:</label>
+    <input type="file" name="video" class="form-control">
+    <br>
 
-        <div id="media-upload-container" style="cursor: pointer;">
-            <div style="position: relative;">
-                <i class="fas fa-camera" style="position: absolute; right: 10px; top: 80px; color:grey; z-index: 1;"></i>
-                <textarea name="content" class="form-control with-icon" rows="4" placeholder="Write your group post here..."></textarea>
-            </div>
-        </div>
+    <label for="id_tags">Tags:</label>
+    <input type="text" name="tags" class="form-control">
+    <br>
 
-        <br>
-        <button type="submit" class="btn btn-primary">
-            <i class="fas fa-comment" style="font-size: 18px;"></i>
-            Create Group Post
-        </button>
-    </form>
-  </div>
+    <label for="id_location">Location:</label>
+    <input type="text" name="location" class="form-control">
+    <br>
+
+    <button type="submit" class="btn btn-primary">
+      <i class="fas fa-comment" style="font-size: 18px;"></i>
+      Create Group Post
+    </button>
+  </form>
+</div>
+
+<!-- JavaScript -->
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    const writePostLink = document.getElementById("write-post-link");
+    const groupPostForm = document.getElementById("group-post-form");
+
+    writePostLink.addEventListener("click", function(event) {
+      event.preventDefault();
+      if (groupPostForm.style.display === "none") {
+        groupPostForm.style.display = "block";
+      } else {
+        groupPostForm.style.display = "none";
+      }
+    });
+  });
+</script>
+<style>
+  #group-post-form {
+    display: none;
+    animation: slideIn 0.5s ease-out;
+  }
+
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(10);
+    }
+  }
+</style>
+
 {% endif %}
+
 
 
   <!-- Display Group Posts -->
@@ -112,8 +162,8 @@
     <div class="row">
         <div class="col-md-12">
             {% for group_post in group_posts %}
-            <div class="card mb-3">
-                <div class="card-header">
+            <div class="card mb-3" style="border: 1.5px solid #ccc;   width: 100%; max-width: none;">
+              <div class="card-header">
                     
                     
                     <!-- Author profile photo -->
@@ -137,6 +187,20 @@
 
                 <div class="card-body">
                     <p class="card-text">{{ group_post.content }}</p>
+                    <!-- Add other fields here -->
+                    {% if group_post.photo %}
+                    <div class="text-center">
+                      <img src="{{ group_post.photo.url }}" alt="Group Post Photo" class="img-fluid mx-auto" style="max-width: 30%; max-height: 30%;">
+                    </div>
+                  {% endif %}
+
+                    {% if group_post.video %}
+                      <video width="320" height="240" controls>
+                        <source src="{{ group_post.video.url }}" type="video/mp4">
+                        Your browser does not support the video tag.
+                      </video>
+                    {% endif %}
+
                     
                     <!-- Comment form (if user is a member of the group) -->
                     {% if request.user in group.members.all %}
@@ -196,7 +260,15 @@
               
                 <!-- Delete button for moderators or creator -->
                 <div class="card-footer">
-                    {% if request.user == group.creator or request.user in group.moderators.all or group_post.author == request.user %}
+                  <!-- Add tags and location display if needed -->
+                  {% if post.tags %}
+                    <p>Tags: {{ post.tags }}</p>
+                  {% endif %}
+
+                  {% if post.location %}
+                      <p>Location: {{ post.location }}</p>
+                  {% endif %}  
+                  {% if request.user == group.creator or request.user in group.moderators.all or group_post.author == request.user %}
                         <form method="post" action="{% url 'delete_group_post' group.id group_post.id %}">
                             {% csrf_token %}
                             <button type="submit" class="btn btn-danger" style="background-color: #ff4f4f; color: #fff;">

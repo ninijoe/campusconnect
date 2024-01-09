@@ -1,0 +1,26 @@
+{% extends 'social_network/layout.html' %}
+
+{% block sponsored_ads %}
+    <!-- Sponsored ads with a black border-->
+    <div class="sponsored-ads" style="background-color: rgb(254, 253, 253); text-align: center; width: 20%; position: absolute; top: 116px; left: 80%; bottom: 0px; border: 1.5px solid black; padding: 35px; box-sizing: border-box;">
+        <!-- Add sponsored ads content here -->
+        <div style="margin: 0 auto; max-width: 80%; margin-left: 10px; font-weight: bold; ">
+            <h4>NEWS</h4>
+            <p style="font-size: 15px; margin: 0;">You are using the beta version of this site, meaning there are plenty more improvements to come.  <br> </p>
+        
+            <p style="font-size: 15px; margin: 0;"> Feel free to use this site to share your thoughts and opinions, connect with new people, post an item or event for sale and many more. </p>
+            
+            <p style="font-size: 15px; margin: 0;"> You can contact me via the email provided with any questions you may have.</p>
+        </div>
+        <br><br>
+        <!-- New div for additional content -->
+        <div class="user-links">
+            <a href="{% url 'terms_of_service' %}" style="color: #090909;">Terms</a> |
+            <a href="{% url 'privacy_policy' %}" style="color: #050505;">Privacy</a>
+        </div>
+        <p style="font-size: 15px;">A Joseph Ephraim Production</p>
+        <ul style="list-style: none; padding-left: 0; margin: 0;">
+        </ul>
+    </div>
+
+{% endblock %}

@@ -25,7 +25,7 @@ import random
 from django.contrib.auth.models import User
 from django.http import Http404
 from .models import Post , Comment , Mention, Message, ResharedPost , GroupComment
-from .forms import PostForm , FollowForm , CommentForm , ProfilePhotoForm, PostMediaForm
+from .forms import PostForm , FollowForm , CommentForm , ProfilePhotoForm
 from django.db.models import F
 from django.contrib import messages
 from .models import User , Group
@@ -55,6 +55,7 @@ from .forms import GroupUpdateForm
 from django.contrib import messages
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
+
 
 
 
@@ -430,23 +431,25 @@ def delete_comment(request, comment_id):
 
 
 
-
-
-
 @login_required(login_url='login')
 def create_post(request):
     user = request.user
-    
+
     if request.method == 'POST':
-        form = PostForm(request.POST)
-        media_form = PostMediaForm(request.POST, request.FILES)
+        form = PostForm(request.POST, request.FILES)
+
         if form.is_valid():
             post = form.save(commit=False)
             post.author = user
-            post.save()
 
-            media = media_form.save()
-            post.media = media
+            # If 'photo' or 'video' is present in the request.FILES
+            if 'photo' in request.FILES or 'video' in request.FILES:
+                media = request.FILES.get('photo') or request.FILES.get('video')
+                post.photo = media if 'photo' in request.FILES else None
+                post.video = media if 'video' in request.FILES else None
+
+            post.tags = form.cleaned_data.get('tags', None)
+            post.location = form.cleaned_data.get('location', None)
             post.save()
 
             # Extract mentions from the post content
@@ -455,15 +458,18 @@ def create_post(request):
             # Save mentions in the Mention model
             for mentioned_user in mentioned_users:
                 Mention.objects.create(post=post, user=user)
-            
+
             # Redirect back to the referring page
             referring_page = request.META.get('HTTP_REFERER')
             return redirect(referring_page)
-    
+
+    # Handle the case where the form is not valid or when the request method is not POST
+    else:
+        form = PostForm()
+
     # Handle the case where the form is not valid or when the request method is not POST
     # You might want to add additional context or logic here
-    return HttpResponse("An error occurred while creating the post.")
-
+    return render(request, 'index.html', {'form': form})
 
 
 
@@ -1249,50 +1255,51 @@ def view_group(request, group_id):
 
 
 
-
-
+# views.py
 @login_required(login_url='login')
 def create_group_post(request, group_id):
     user = request.user
     group = get_object_or_404(Group, id=group_id)
 
-    # Check if the user is a member of the group
     if not group.members.filter(pk=user.pk).exists():
         print("User is not a member of this group.")
         return HttpResponse("You are not a member of this group.")
 
     if request.method == 'POST':
         content = request.POST.get('content', '')
-        media_form = PostMediaForm(request.POST, request.FILES)
+        photo = request.FILES.get('photo')
+        video = request.FILES.get('video')
+        tags = request.POST.get('tags', '')
+        location = request.POST.get('location', '')
 
-        if content:
-            group_post = GroupPost(author=user, group=group, content=content)
+        group_post = GroupPost(author=user, group=group, content=content)
 
-            if media_form.is_valid():
-                media = media_form.save(commit=False)
-                media.group_post = group_post
-                media.save()
-                group_post.media = media
+        if photo:
+            group_post.photo = photo
 
-            try:
-                group_post.save()
-                print("GroupPost saved successfully.")
-            except Exception as e:
-                print(f"Error saving GroupPost: {e}")
+        if video:
+            group_post.video = video
 
-            # Redirect to the view_group page after creating the post
-            return redirect('view_group', group_id=group.id)
+        if tags: 
+            group_post.tags = tags
 
-    # Pass the group to the context when rendering the template
+        if location:
+            group_post.location = location
+
+        try:
+            group_post.save()
+            print("GroupPost saved successfully.")
+        except Exception as e:
+            print(f"Error saving GroupPost: {e}")
+
+        return redirect('view_group', group_id=group.id)
+
     return render(request, 'social_network/view_group.html', {'group': group})
-
-
-
 
 @login_required(login_url='login')
 def group_posts(request, group_id):
     group = get_object_or_404(Group, id=group_id)
-    form = GroupPostForm()
+    form = None  # No form is needed for direct HTML form elements
 
     # Fetch group posts in descending order of time created
     group_posts = group.grouppost_set.all().order_by('-created')
